@@ -1,0 +1,91 @@
+**************
+  0.23
+**************
+- fixed glaring bug in Ignore accumulator (submitted by Christopher McFarland), replaced with SkipManyParser
+- changed license to GPL v3
+
+***************
+   0.22 
+***************
+- added labeled reduce functions to OpTableParser. Labeled functions have signatures 
+  (const std::string&, TermType, TermType) => TermType, where the first parameter is the 
+  operator being parsed
+- fixed some bugs in ManyParser
+- created a seperate SepByParser
+- created ParsnipException class, to be used in the next release for RequireParsers, which 
+  will generate useful error messages
+
+***************
+   0.21
+***************
+- dropped DIRECT_LEFT_RECURSION parse strategy, Parsnip is now purely a packrat parsing library
+- added OpTableParser for operator precedence parsing
+
+***************
+   0.20
+***************
+- provided default names for most parsers
+- improved parse tracing output
+
+****************
+    0.19
+****************
+- made operators >> and && synonyms for seq and seq_vec
+
+****************
+    0.18
+****************
+- added default names for CharParser, CharRangeParser, StringParser
+- changed vector sequence operator to &&
+- operators >>= and <<= now implement parser naming
+- added basic tracing to Parser::parse() function and added
+  trace toggling via Parser::setTrace function
+
+****************
+    0.17
+****************
+- extended BindParser and renamed to CreateParser
+- bugfixes galore
+
+****************
+    0.16
+****************
+- fixed packrat parsing, it no longer enters infinite loops on legal grammars
+- direct left recursion support is improved but still iffy, some grammars fail mysteriously
+- added Whitespace.h to simplify interface for changing default whitespace
+- fixed bugs in LongerParser
+
+****************
+     0.15
+****************
+- fixed some glaring bugs in tuple sequences
+- dropped the In template parameter from Result objects
+
+
+****************
+     0.14
+****************
+- dropped Cursor objects in favor of centralized state in the Reader. Clarifies code somewhat and makes parsing more efficient. Parser::parser
+and Parser::eval now take no arguments and get their position and stream from the Reader. 
+- separated CharParser, OneOfParser, CharRangeParser into their own files
+- created a real StringParser (instead of a sequence of CharParsers) for better parsing performance
+- error handling is less buggy due to Reader's better position management, but messages are no more informative
+
+****************
+     0.13
+****************
+- mutual recursion was a bloody mess. Dropping it from the code cleaned up several files and made
+the entire project more elegant. 
+- Reversed order of template parameters from P<Out, In> to P<In, Out>
+- implemented simple S-Expression parser, catching several bugs along the way
+- the sequence operator *always* constructs tuples now, Vectors can be had using the new operator>>=
+- redesigned cursors for simplicity. Iterators removed since they provide redundant information. Cursors
+now stored within result on the heap rather than by value. 
+- added a few more outward facing library functions (input_consumed, parse_position, etc...)
+- error handling is still buggy and terrible :-( 
+
+
+*****************
+    0.11
+*****************
+- implemented parse function which *should* allow mutual left recursion, but haven't tested extensively

@@ -1,3 +1,3 @@
-[submodule "extern/parsly"]
-	path = extern/parsly
-	url = https://github.com/grahamboree/parsly
+[submodule "extern/cxxopts"]
+	path = extern/cxxopts
+	url = https://github.com/jarro2783/cxxopts
