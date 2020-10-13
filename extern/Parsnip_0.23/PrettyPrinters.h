@@ -34,10 +34,10 @@ template <typename T, unsigned int N>
 inline std::ostream &operator<<(std::ostream &os, const Vector<T, N> &vec)
 {
     //os << "vector <" << typeid(T).name() << "> " << endl;
-    os << "vec: " << endl;
+    os << "vec: " << std::endl;
     for (unsigned int i = 0; i < (N - 1); ++i)
     {
-        os << "[" << i << "] " << vec[i] << endl;
+        os << "[" << i << "] " << vec[i] << std::endl;
     }
     os << "[" << N - 1 << "] " << vec[N - 1];
     return os;
@@ -47,7 +47,7 @@ template <typename T1, typename T2>
 inline std::ostream &operator<<(std::ostream &os, const std::map<T1, T2> &m)
 {
     //os << "map < " << typeid(T1).raw_name() << ", " << typeid(T2).name() << " > " << endl;
-    os << "map: " << endl;
+    os << "map: " << std::endl;
     typename std::map<T1, T2>::const_iterator iter = m.begin();
     while (iter != m.end())
     {
@@ -55,7 +55,7 @@ inline std::ostream &operator<<(std::ostream &os, const std::map<T1, T2> &m)
         ++iter;
         if (iter == m.end())
             break;
-        os << endl;
+        os << std::endl;
     }
     return os;
 }

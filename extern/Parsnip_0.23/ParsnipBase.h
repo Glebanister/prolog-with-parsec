@@ -28,8 +28,6 @@
 using yasper::ptr;
 
 #include <iostream>
-using std::cout;
-using std::endl;
 
 #include <fstream>
 
@@ -146,7 +144,7 @@ inline T fromString(const std::string s)
 inline void debug(std::string s)
 {
     std::cout << std::endl
-              << "DEBUG: " << s << endl;
+              << "DEBUG: " << s << std::endl;
 }
 
 template <typename T>

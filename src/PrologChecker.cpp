@@ -8,12 +8,9 @@ namespace prolog
     class Accumulator##type : public Parsnip::Accumulator<PrologObjectPtr, PrologObjectPtr> \
     {                                                                                       \
     public:                                                                                 \
-        Accumulator##type(const std::string &type)                                          \
-            : object(new PrologObject("", type)) {}                                         \
-                                                                                            \
-        virtual void accum(const PrologObjectPtr &object)                                   \
+        virtual void accum(const PrologObjectPtr &nextObject)                               \
         {                                                                                   \
-            object->objects.push_back(object);                                              \
+            object->objects.push_back(nextObject);                                          \
         }                                                                                   \
                                                                                             \
         virtual PrologObjectPtr result()                                                    \
@@ -22,7 +19,7 @@ namespace prolog
         }                                                                                   \
                                                                                             \
     private:                                                                                \
-        PrologObjectPtr object;                                                             \
+        PrologObjectPtr object = new PrologObject("", #type);                               \
     };
 
 #define OBJECT_MAKER(name)                          \
@@ -42,15 +39,21 @@ namespace prolog
     }
 
 OBJECT_FROM_STRING_MAKER(Identifier);
+OBJECT_FROM_STRING_MAKER(Variable);
 OBJECT_FROM_STRING_MAKER(ModuleDecl);
+OBJECT_FROM_STRING_MAKER(TypeDecl);
 OBJECT_MAKER(Disj);
+OBJECT_MAKER(Arrow);
 OBJECT_MAKER(Conj);
-OBJECT_MAKER(Decl);
+OBJECT_MAKER(Relation);
 OBJECT_MAKER(Atom);
 OBJECT_MAKER(AtomSeq);
 OBJECT_MAKER(Program);
+OBJECT_MAKER(TypeDecl);
+OBJECT_MAKER(EmptyProgram);
 
 OBJECT_ACCUMULATOR(RelationSequence);
+OBJECT_ACCUMULATOR(TypeDeclarationSequence);
 
 ParseResult parseProgram(const std::string &text)
 {
@@ -65,13 +68,27 @@ ParseResult parseProgram(const std::string &text)
     auto str_tok = [](std::string s) { return token(skip_str(std::move(s))); };
 
     // Tokens
-    StrParser identifierStringParser = (letter | ch('_')) + optional(many1(letter | digit | ch('_')));
-    PrologObjectParser identifier = token(call1(makeFromStringIdentifier, identifierStringParser));
-    auto opn = ch_tok('('),
-         cls = ch_tok(')'),
-         corkscrew = str_tok(":-"),
-         period = ch_tok('.'),
-         module = str_tok("module");
+    auto
+        opn = ch_tok('('),
+        cls = ch_tok(')'),
+        sqopn = ch_tok('['),
+        sqcls = ch_tok(']'),
+        corkscrew = str_tok(":-"),
+        period = ch_tok('.'),
+        moduleKeyword = str_tok("module"),
+        typeKeyword = str_tok("type");
+
+    auto notKeywordChecker = is_not((str("module") | str("type")) >> is_not(alphaNum | ch('_')));
+
+    StrParser identifierStringParser = notKeywordChecker >>
+                                       ((range('a', 'z') | ch('_')) +
+                                        many(letter | digit | ch('_'))),
+
+              variableStringParser = (range('A', 'Z') +
+                                      many(alphaNum | ch('_')));
+
+    PrologObjectParser identifier = token(call1(makeFromStringIdentifier, identifierStringParser)),
+                       variable = token(call1(makeFromStringVariable, variableStringParser));
 
     // Global parsers
     PrologObjectParser
@@ -79,18 +96,8 @@ ParseResult parseProgram(const std::string &text)
         expression = undefined(),
         relationDeclaration = undefined(),
         atom = undefined(),
-        moduleDeclaration = undefined();
-
-    {
-        // Program parsers
-
-        PrologObjectParser
-            relationDeclarationSequence = undefined();
-
-        setLazy(relationDeclarationSequence, many<AccumulatorRelationSequence>(relationDeclaration));
-
-        setLazy(program, call2(makeProgram<obj, obj>, moduleDeclaration >> relationDeclarationSequence));
-    }
+        moduleDeclaration = undefined(),
+        typeDeclaration = undefined();
 
     {
         // Expression parsers
@@ -103,15 +110,18 @@ ParseResult parseProgram(const std::string &text)
                          ->infix_right(";", 10, makeDisj<obj, obj>)
                          ->infix_right(",", 20, makeConj<obj, obj>);
 
-        setLazy(expressionTerm, atom | opn >> expressionOperation >> cls | opn >> expressionTerm >> cls);
+        setLazy(expressionTerm, atom |
+                                    opn >> expressionOperation >> cls |
+                                    opn >> expressionTerm >> cls);
+
         setLazy(expressionOperation, _operators);
         setLazy(expression, expressionOperation | expressionTerm);
     }
     {
         // Declaration parser
-        setLazy(relationDeclaration,
-                call1(makeDecl<obj>, atom >> period) |
-                    call2(makeDecl<obj, obj>, atom >> corkscrew >> expression >> period));
+        setLazy(relationDeclaration, choice(
+                                         call2(makeRelation<obj, obj>, atom >> corkscrew >> expression >> period),
+                                         call1(makeRelation<obj>, atom >> period)));
     }
     {
         // Atom parsers
@@ -120,13 +130,56 @@ ParseResult parseProgram(const std::string &text)
             atomBrackets = undefined();
 
         setLazy(atom, call2(makeAtom<obj, obj>, identifier >> atomSeq));
-        setLazy(atomSeq, call2(makeAtomSeq<obj, obj>, opn >> atomBrackets >> cls >> atomSeq) |
-                             optional<string, obj>(atom, makeAtom<>()));
+        setLazy(atomSeq, choice(
+                             call2(makeAtomSeq<obj, obj>, opn >> atomBrackets >> cls >> atomSeq),
+                             optional<string, obj>(atom, makeAtom<>())));
+
         setLazy(atomBrackets, opn >> atomBrackets >> cls | atom);
     }
     {
         // Module parser
-        setLazy(moduleDeclaration, call1(makeFromStringModuleDecl, module >> identifierStringParser >> period));
+        setLazy(moduleDeclaration, call1(makeFromStringModuleDecl, moduleKeyword >> identifierStringParser >> period));
+    }
+    {
+        // Type parser
+        PrologObjectParser
+            type = undefined(),
+            _operators = undefined(),
+            typeTerm = undefined(),
+            typeOperation = undefined(),
+            typeDeclarationHead = undefined();
+
+        _operators = op_table(typeTerm)
+                         ->infix_right("->", 10, makeArrow<obj, obj>);
+
+        setLazy(typeTerm, atom | opn >> typeOperation >> cls | opn >> typeTerm >> cls);
+        setLazy(typeOperation, _operators);
+        setLazy(type, typeOperation | typeTerm);
+        setLazy(typeDeclarationHead, call1(makeFromStringTypeDecl, typeKeyword >> identifierStringParser));
+        setLazy(typeDeclaration, call2(makeTypeDecl<obj, obj>, typeDeclarationHead >> type >> period));
+    }
+    {
+        // Program parsers
+
+        PrologObjectParser
+            relationDeclarationSequence = undefined(),
+            typeDeclarationSequence = undefined();
+
+        setLazy(relationDeclarationSequence, many1<AccumulatorRelationSequence>(relationDeclaration));
+        setLazy(typeDeclarationSequence, many1<AccumulatorTypeDeclarationSequence>(typeDeclaration));
+
+        setLazy(program,
+                call3(makeProgram<obj, obj, obj>, moduleDeclaration >> typeDeclarationSequence >> relationDeclarationSequence) |
+                    call2(makeProgram<obj, obj>, typeDeclarationSequence >> relationDeclarationSequence) |
+
+                    call2(makeProgram<obj, obj>, moduleDeclaration >> typeDeclarationSequence) |
+                    call1(makeProgram<obj>, typeDeclarationSequence) |
+
+                    call2(makeProgram<obj, obj>, moduleDeclaration >> relationDeclarationSequence) |
+                    call1(makeProgram<obj>, relationDeclarationSequence) |
+
+                    call1(makeProgram<obj>, moduleDeclaration) |
+                    call0(makeProgram<>, not_ch(anyChar)));
     }
     return Parsnip::parse(text, program);
 }
@@ -169,7 +222,7 @@ std::ostream &operator<<(std::ostream &os, const ParsingResultPrinter &printer)
 
         for (int i = 0; i < badStringEnd - badStringBegin; ++i)
         {
-            os << (printer.result.parse_position() == i ? "^" : "_");
+            os << (badCharPosition == i ? "^" : "_");
         }
         os << "\nError: "
            << "unexpected character '"
