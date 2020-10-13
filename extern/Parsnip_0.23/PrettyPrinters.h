@@ -22,43 +22,43 @@
 #ifndef PARSNIP_PRETTY_PRINTERS_H
 #define PARSNIP_PRETTY_PRINTERS_H
 
-#include <ostream>
 #include <map>
+#include <ostream>
 #include <typeinfo>
 
 #include "Vector.h"
 
 namespace Parsnip
 {
-	template <typename T, unsigned int N>
-	std::ostream &operator<<(std::ostream &os, const Vector<T, N> &vec)
-	{
-		//os << "vector <" << typeid(T).name() << "> " << endl;
-		os << "vec: " << endl;
-		for (unsigned int i = 0; i < (N - 1); ++i)
-		{
-			os << "[" << i << "] " << vec[i] << endl;
-		}
-		os << "[" << N - 1 << "] " << vec[N - 1];
-		return os;
-	}
+template <typename T, unsigned int N>
+inline std::ostream &operator<<(std::ostream &os, const Vector<T, N> &vec)
+{
+    //os << "vector <" << typeid(T).name() << "> " << endl;
+    os << "vec: " << endl;
+    for (unsigned int i = 0; i < (N - 1); ++i)
+    {
+        os << "[" << i << "] " << vec[i] << endl;
+    }
+    os << "[" << N - 1 << "] " << vec[N - 1];
+    return os;
+}
 
-	template <typename T1, typename T2>
-	std::ostream &operator<<(std::ostream &os, const std::map<T1, T2> &m)
-	{
-		//os << "map < " << typeid(T1).raw_name() << ", " << typeid(T2).name() << " > " << endl;
-		os << "map: " << endl;
-		typename std::map<T1, T2>::const_iterator iter = m.begin();
-		while (iter != m.end())
-		{
-			os << (*iter).first << " -> " << (*iter).second;
-			++iter;
-			if (iter == m.end())
-				break;
-			os << endl;
-		}
-		return os;
-	}
+template <typename T1, typename T2>
+inline std::ostream &operator<<(std::ostream &os, const std::map<T1, T2> &m)
+{
+    //os << "map < " << typeid(T1).raw_name() << ", " << typeid(T2).name() << " > " << endl;
+    os << "map: " << endl;
+    typename std::map<T1, T2>::const_iterator iter = m.begin();
+    while (iter != m.end())
+    {
+        os << (*iter).first << " -> " << (*iter).second;
+        ++iter;
+        if (iter == m.end())
+            break;
+        os << endl;
+    }
+    return os;
+}
 } // namespace Parsnip
 
 #endif

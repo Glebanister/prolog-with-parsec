@@ -27,31 +27,31 @@
 namespace Parsnip
 {
 
-	template <typename In, typename Out>
-	struct NotParser : public IParser<In, void>
-	{
-		NotParser(ptr<IParser<In, Out>> p) : myParser(p) {}
+template <typename In, typename Out>
+struct NotParser : public IParser<In, void>
+{
+    NotParser(ptr<IParser<In, Out>> p) : myParser(p) {}
 
-		Result<void> eval()
-		{
-			typename Reader<In>::IndexT lastPos = Reader<In>::pos();
-			Result<Out> result = myParser->parse();
+    Result<void> eval()
+    {
+        typename Reader<In>::IndexT lastPos = Reader<In>::pos();
+        Result<Out> result = myParser->parse();
 
-			//restore input stream to previous position
-			Reader<In>::set_pos(lastPos);
+        //restore input stream to previous position
+        Reader<In>::set_pos(lastPos);
 
-			return result ? Result<void>::fail() : Result<void>::succeed();
-		}
-		ptr<IParser<In, Out>> myParser;
-	};
+        return result ? Result<void>::fail() : Result<void>::succeed();
+    }
+    ptr<IParser<In, Out>> myParser;
+};
 
-	template <typename In, typename Out>
-	ptr<IParser<In, void>> is_not(const ptr<IParser<In, Out>> &parser)
-	{
-		return new NotParser<In, Out>(parser);
-	}
+template <typename In, typename Out>
+inline ptr<IParser<In, void>> is_not(const ptr<IParser<In, Out>> &parser)
+{
+    return new NotParser<In, Out>(parser);
+}
 
-	/*
+/*
 	template <typename In, typename Out>
 	ptr<IParser<In, void> > operator!(ptr<IParser<In, Out> >& parser)
 	{

@@ -27,77 +27,79 @@
 namespace Parsnip
 {
 
-template <typename Accumulator,  typename AccOut, typename In, typename ParserOut>
+template <typename Accumulator, typename AccOut, typename In, typename ParserOut>
 struct SepByParser : public IParser<In, AccOut>
 {
-	SepByParser(ptr<IParser<In, ParserOut> > p, ptr<IParser<In, void> > _sep, int _min, int _max) : parser(p), sep(_sep), min(_min), max(_max) 
-	{
-		this->setName("sepBy");
-	}	
-	
+    SepByParser(ptr<IParser<In, ParserOut>> p, ptr<IParser<In, void>> _sep, int _min, int _max) : parser(p), sep(_sep), min(_min), max(_max)
+    {
+        this->setName("sepBy");
+    }
+
 protected:
-	virtual Result<AccOut> eval()
-	{
-		Accumulator acc;
-		Result<ParserOut> result;
-		
-		//save position before trying to parse so we can restore it if we fail
-		typename Reader<In>::IndexT lastPos = Reader<In>::pos();
+    virtual Result<AccOut> eval()
+    {
+        Accumulator acc;
+        Result<ParserOut> result;
 
-		int i = 0;
-		while (i < max && Reader<In>::hasNext()) {
-			
-			result = parser->parse();
-			if (result) 
-			{
-				acc.accum( result.data());
-			}
-			else { break; }
-			
-			if (!sep->parse()) { break; }
+        //save position before trying to parse so we can restore it if we fail
+        typename Reader<In>::IndexT lastPos = Reader<In>::pos();
 
-			++i;
-		} 
-		
-		if (i < min)
-		{
-			Reader<In>::set_pos(lastPos);	
-			return Result<AccOut>::fail();
-		}
-		else
-		{
-			return Result<AccOut>::succeed(acc.result());		
-	
-		}
-	}
-	
-	ptr<IParser<In, ParserOut> > parser; 
-	ptr<IParser<In, void> > sep;
-	int min, max;
+        int i = 0;
+        while (i < max && Reader<In>::hasNext())
+        {
+
+            result = parser->parse();
+            if (result)
+            {
+                acc.accum(result.data());
+            }
+            else
+            {
+                break;
+            }
+
+            if (!sep->parse())
+            {
+                break;
+            }
+
+            ++i;
+        }
+
+        if (i < min)
+        {
+            Reader<In>::set_pos(lastPos);
+            return Result<AccOut>::fail();
+        }
+        else
+        {
+            return Result<AccOut>::succeed(acc.result());
+        }
+    }
+
+    ptr<IParser<In, ParserOut>> parser;
+    ptr<IParser<In, void>> sep;
+    int min, max;
 };
 
+template <typename Acc, typename In, typename Out, typename SepOut>
+inline ptr<IParser<In, typename Acc::ResultType>> sepBy(ptr<IParser<In, Out>> data, ptr<IParser<In, SepOut>> sep, int min = 0, int max = std::numeric_limits<int>::max())
+{
+    return new SepByParser<Acc, typename Acc::ResultType, In, Out>(data, skip(sep), min, max);
+}
 
 template <typename Acc, typename In, typename Out, typename SepOut>
-ptr<IParser<In, typename Acc::ResultType> > sepBy(ptr<IParser<In, Out> > data, ptr<IParser<In, SepOut> > sep, int min = 0, int max = std::numeric_limits<int>::max())
+inline ptr<IParser<In, typename Acc::ResultType>> sepBy1(ptr<IParser<In, Out>> data, ptr<IParser<In, SepOut>> sep, int max = std::numeric_limits<int>::max())
 {
-	return new SepByParser<Acc, typename Acc::ResultType, In, Out>( data , skip(sep), min, max);
+    return sepBy<Acc>(data, sep, 1, max);
 }
-
 
 template <typename Acc, typename In, typename Out, typename SepOut>
-ptr<IParser<In, typename Acc::ResultType> > sepBy1(ptr<IParser<In, Out> > data, ptr<IParser<In, SepOut> > sep,  int max = std::numeric_limits<int>::max())
+inline ptr<IParser<In, typename Acc::ResultType>> sepByAtleast(ptr<IParser<In, Out>> data, ptr<IParser<In, SepOut>> sep, int min)
 {
-	return sepBy<Acc>(data, sep, 1, max);
+    return sepBy<Acc>(data, sep, min);
 }
 
-
-template <typename Acc, typename In, typename Out, typename SepOut>
-ptr<IParser<In, typename Acc::ResultType> > sepByAtleast(ptr<IParser<In, Out> > data, ptr<IParser<In, SepOut> > sep,  int min)
-{
-	return sepBy<Acc>(data, sep, min);
-}
-
-
-}
+} // namespace Parsnip
 
 #endif

@@ -22,37 +22,37 @@
 #ifndef PARSNIP_H
 #define PARSNIP_H
 
-#include "ParseResult.h"
 #include "AllParsers.h"
+#include "ParseResult.h"
 
 namespace Parsnip
 {
 
 template <typename In, typename Out>
-ParseResult<Out> parse(const string& str, ptr<IParser<In, Out> > parser)
+inline ParseResult<Out> parse(const string &str, ptr<IParser<In, Out>> parser)
 {
-	Reader<In>::init_stream(str);
+    Reader<In>::init_stream(str);
 
-	Result<Out> result = parser->parse();
-	CacheBase::clear_all();
+    Result<Out> result = parser->parse();
+    CacheBase::clear_all();
 
-	if (result) return ParseResult<Out>(result.data(), Reader<In>::pos(), str.length());
+    if (result)
+        return ParseResult<Out>(result.data(), Reader<In>::pos(), str.length());
 
-	return ParseResult<Out>(Reader<In>::pos(), str.length());
+    return ParseResult<Out>(Reader<In>::pos(), str.length());
 }
 
 template <typename In, typename Out>
-ParseResult<Out> parse_file(const string& name, ptr<IParser<In, Out> > parser)
+inline ParseResult<Out> parse_file(const string &name, ptr<IParser<In, Out>> parser)
 {
-	return parse(read_file(name), parser);
+    return parse(read_file(name), parser);
 }
 
 template <typename In, typename Out>
-bool match(const string& str, ptr<IParser<In, Out> > parser)
+inline bool match(const string &str, ptr<IParser<In, Out>> parser)
 {
-	return parse(str, parser).valid;
+    return parse(str, parser).valid;
 }
-
-}
+} // namespace Parsnip
 
 #endif

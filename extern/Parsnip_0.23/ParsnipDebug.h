@@ -27,31 +27,31 @@
 namespace Parsnip
 {
 
-	struct ParsnipDebug
-	{
-		static unsigned indent;
+struct ParsnipDebug
+{
+    static unsigned indent;
 
-		static void increment_indent()
-		{
-			++indent;
-		}
+    static void increment_indent()
+    {
+        ++indent;
+    }
 
-		static void decrement_indent()
-		{
-			--indent;
-		}
+    static void decrement_indent()
+    {
+        --indent;
+    }
 
-		static void output_indent()
-		{
-			for (unsigned i = 0; i < indent; ++i)
-			{
-				std::cout << "   ";
-			}
-		}
-	};
+    static void output_indent()
+    {
+        for (unsigned i = 0; i < indent; ++i)
+        {
+            std::cout << "   ";
+        }
+    }
+};
 
-	unsigned ParsnipDebug::indent; 
+unsigned ParsnipDebug::indent;
 
-}
+} // namespace Parsnip
 
 #endif

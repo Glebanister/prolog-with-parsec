@@ -22,46 +22,44 @@
 #ifndef PARSNIP_RESULT_H
 #define PARSNIP_RESULT_H
 
-#include "ParsnipBase.h"
 #include "Maybe.h"
+#include "ParsnipBase.h"
 namespace Parsnip
 {
 
 template <typename Out>
 struct Result
-{	
-	//constructor without data signifies a failed result
-	Result () : myData(nothing<Out>()) {}
+{
+    //constructor without data signifies a failed result
+    Result() : myData(nothing<Out>()) {}
 
-	Result(const Result& other) : myData(other.myData)
-	{
-		
-	}
+    Result(const Result &other) : myData(other.myData)
+    {
+    }
 
-    operator bool()  const { return myData; }
-	bool operator!() const { return !myData;  }
-	
-	static Result fail()
-	{
-		return Result();
-	}
-	
-	static Result succeed(const Out& _data)
-	{
-		return Result(_data);
-	}
+    operator bool() const { return myData; }
+    bool operator!() const { return !myData; }
 
-	const Out& data() 
-	{
-		return myData.get();
-	}
-	
+    static Result fail()
+    {
+        return Result();
+    }
+
+    static Result succeed(const Out &_data)
+    {
+        return Result(_data);
+    }
+
+    const Out &data()
+    {
+        return myData.get();
+    }
+
 private:
-	Maybe<Out> myData;
+    Maybe<Out> myData;
 
-	//constructor with data is a successful result
-	Result(Out _data) :  myData(just(_data)) {}
-
+    //constructor with data is a successful result
+    Result(Out _data) : myData(just(_data)) {}
 };
 
 /* 
@@ -70,36 +68,30 @@ private:
 
 template <>
 struct Result<void>
-{	
-	Result() : success(false) {}
+{
+    Result() : success(false) {}
 
-	Result(const Result& other) : success(other.success) {}
-	
-	static Result fail()
-	{
-		return Result(false); 
-	}
-	
-	
-	static Result succeed()
-	{
-		return Result(true); 
-	}
-	
-	
-    operator bool() const  { return success; }
-	bool operator!() const { return !success; }
+    Result(const Result &other) : success(other.success) {}
 
-	bool success;
+    static Result fail()
+    {
+        return Result(false);
+    }
 
+    static Result succeed()
+    {
+        return Result(true);
+    }
+
+    operator bool() const { return success; }
+    bool operator!() const { return !success; }
+
+    bool success;
 
 private:
-	
-	Result(bool _succ) : success(_succ) {}
+    Result(bool _succ) : success(_succ) {}
 };
 
-
-}
-
+} // namespace Parsnip
 
 #endif

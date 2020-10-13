@@ -32,42 +32,41 @@ namespace Parsnip
 */
 
 template <typename In, typename Out>
-ptr<IParser<In, Vector<Out, 2> > > seq_vec ( ptr<IParser<In, Out> > a, ptr<IParser<In, Out> > b)
+inline ptr<IParser<In, Vector<Out, 2>>> seq_vec(ptr<IParser<In, Out>> a, ptr<IParser<In, Out>> b)
 {
-   return new SeqVecParser<In, Out, 1, 1>(a,b); 
-} 
-
+    return new SeqVecParser<In, Out, 1, 1>(a, b);
+}
 
 /*
 	two Vectors of the same type combined with &&
 */
 
 template <typename In, typename Out, unsigned N1, unsigned N2>
-ptr<IParser<Vector<Out, N1 + N2>, In> > seq_vec ( ptr<IParser<In, Vector<Out, N1> > > a, ptr<IParser<In, Vector<Out, N2> > > b)
+inline ptr<IParser<Vector<Out, N1 + N2>, In>> seq_vec(ptr<IParser<In, Vector<Out, N1>>> a, ptr<IParser<In, Vector<Out, N2>>> b)
 {
-   return  new SeqVecParser<In, Out, N1, N2>(a,b); 
-} 
+    return new SeqVecParser<In, Out, N1, N2>(a, b);
+}
 
 /*
 	N-vector and single item of the same type
 */
 
 template <typename In, typename Out, unsigned N>
-ptr<IParser < In, Vector <Out, N + 1> > > seq_vec ( ptr< IParser< In, Vector<Out, N>> > a, ptr<Parser<In, Out> > b)
+inline ptr<IParser<In, Vector<Out, N + 1>>> seq_vec(ptr<IParser<In, Vector<Out, N>>> a, ptr<Parser<In, Out>> b)
 {
-   return new SeqVecParser<In, Out, N, 1>(a,b); 
-} 
+    return new SeqVecParser<In, Out, N, 1>(a, b);
+}
 
 /*
 	single item and N-vector of the same type
 */
 
 template <typename In, typename Out, unsigned N>
-ptr<IParser<In, Vector<Out, N + 1> > > seq_vec( ptr<Parser<In, Out> > a, ptr<IParser<In, Vector<Out, N>> > b)
+inline ptr<IParser<In, Vector<Out, N + 1>>> seq_vec(ptr<Parser<In, Out>> a, ptr<IParser<In, Vector<Out, N>>> b)
 {
-   return new SeqVecParser<In, Out, 1, N>(a,b); 
-} 
-
+    return new SeqVecParser<In, Out, 1, N>(a, b);
 }
+
+} // namespace Parsnip
 
 #endif

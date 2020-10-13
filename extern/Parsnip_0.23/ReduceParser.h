@@ -26,45 +26,45 @@
 
 namespace Parsnip
 {
-	template <typename In, typename Out, unsigned int N>
-	struct ReduceParser : public IParser<In, Vector<Out, N>>
-	{
-		ReduceParser(ptr<IParser<In, Vector<Out, N>> > _parser, Out (*fn)(Out, Out))
-			: parser(_parser), reduceFn(fn) {}
+template <typename In, typename Out, unsigned int N>
+struct ReduceParser : public IParser<In, Vector<Out, N>>
+{
+    ReduceParser(ptr<IParser<In, Vector<Out, N>>> _parser, Out (*fn)(Out, Out))
+        : parser(_parser), reduceFn(fn) {}
 
-		virtual Result<Out> eval()
-		{
-			Result<Vector<Out, N>> result = parser->parse();
-			if (result)
-			{
-				Vector<Out, N> vec = result.get();
+    virtual Result<Out> eval()
+    {
+        Result<Vector<Out, N>> result = parser->parse();
+        if (result)
+        {
+            Vector<Out, N> vec = result.get();
 
-				Out value = vec[0]; 
-				for (unsigned i = 1; i < N; ++i)
-				{
-					value = reduceFn(value, vec[i]);
-				}
+            Out value = vec[0];
+            for (unsigned i = 1; i < N; ++i)
+            {
+                value = reduceFn(value, vec[i]);
+            }
 
-				return Result<Out>::succeed(value);
-			}
-			else
-			{
-				return Result<Out>::fail();
-			}
-		}
+            return Result<Out>::succeed(value);
+        }
+        else
+        {
+            return Result<Out>::fail();
+        }
+    }
 
-		ptr<IParser<In, Vector<Out, N>> > parser; 
-		Out (*reduceFn)(Out, Out);
-	};
+    ptr<IParser<In, Vector<Out, N>>> parser;
+    Out (*reduceFn)(Out, Out);
+};
 
-	template <typename In, typename Out, unsigned int N>
-	ptr<IParser<In, Out> > reduce(
-		Out (*reduceFn)(Out, Out),
-		ptr<IParser<In, Vector<Out, N>> > parser)
-	{
-		return new ReduceParser<In, Out, N>(parser, reduceFn);
-	}
-
+template <typename In, typename Out, unsigned int N>
+inline ptr<IParser<In, Out>> reduce(
+    Out (*reduceFn)(Out, Out),
+    ptr<IParser<In, Vector<Out, N>>> parser)
+{
+    return new ReduceParser<In, Out, N>(parser, reduceFn);
 }
+
+} // namespace Parsnip
 
 #endif

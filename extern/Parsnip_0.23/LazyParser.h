@@ -30,51 +30,44 @@ namespace Parsnip
 template <typename In, typename Out>
 struct LazyParser : public IParser<In, Out>
 {
-	LazyParser() : target(new FailParser<In, Out>()) 
-	{
-		this->setName("lazy");
-	}
-	
+    LazyParser() : target(new FailParser<In, Out>())
+    {
+        this->setName("lazy");
+    }
 
-	
-	void setTarget(ptr<IParser<In, Out> > p)
-	{
-		target = p;
-	}
+    void setTarget(ptr<IParser<In, Out>> p)
+    {
+        target = p;
+    }
 
-	
 protected:
-	Result<Out> eval()
-	{
-		return target->parse();
-	}
-	
+    Result<Out> eval()
+    {
+        return target->parse();
+    }
+
 private:
-	ptr<IParser<In, Out> > target;
+    ptr<IParser<In, Out>> target;
 };
 
-
 template <typename In, typename Out>
-IParser<In, Out>*  lazy()
+inline IParser<In, Out> *lazy()
 {
-	return new LazyParser<In, Out>();
+    return new LazyParser<In, Out>();
 }
-
 
 template <typename Out>
-IParser<std::string, Out>*  lazy()
+inline IParser<std::string, Out> *lazy()
 {
-	return lazy<std::string, Out>();
+    return lazy<std::string, Out>();
 }
 
 template <typename In, typename Out>
-ptr<IParser<In, Out> > setLazy(ptr<IParser<In, Out> > delay, ptr<IParser<In, Out> > target)
+inline ptr<IParser<In, Out>> setLazy(ptr<IParser<In, Out>> delay, ptr<IParser<In, Out>> target)
 {
-	static_cast< ptr<LazyParser<In, Out> >  > (delay)->setTarget(target);
-	return target; 
+    static_cast<ptr<LazyParser<In, Out>>>(delay)->setTarget(target);
+    return target;
 }
-
-
-}
+} // namespace Parsnip
 
 #endif

@@ -19,7 +19,6 @@
     along with Parsnip.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 /*
 	July 25th: renamed to Vector
 
@@ -32,7 +31,6 @@
 		- wrapped vec in Parsnip namespace
 		- added operator+ for combining vecs
 */
-
 
 /*   _______              __
     / ___/ /  ___  __ _  / /  ___
@@ -105,13 +103,12 @@ template <class T, unsigned N>
 class Vector
 {
 public:
-
     /**: The default constructor.  For user-defined types T, the
                default constructor for T will be run on each of the N
                objects in the Vector.  For builtin (intrinsic) types,
                the values in the Vector will be garbage.
     */
-    Vector ();
+    Vector();
 
     /**: Constructs a Vector, initializing the elements in the Vector
                with the corresponding elements in the vector v.  This assumes
@@ -119,25 +116,24 @@ public:
                that is NOT checked.  For user-defined types, T must have a
                well-defined and accessible copy constructor.
     */
-  //explicit Vector (const T* v);
+    //explicit Vector (const T* v);
     //
     // The copy constructor.
     //
-    Vector (const Vector& rhs);
+    Vector(const Vector &rhs);
     //
     // The copy assignment operator.
     //
-    Vector& operator= (const Vector& rhs);
+    Vector &operator=(const Vector &rhs);
 
     /**: Returns a modifiable lvalue reference to the i'th
                element in the Vector, counting from zero.    */
-    T& operator[] (unsigned i);
+    T &operator[](unsigned i);
 
     /**: Returns a constant reference to the i'th element in the Vector,
                counting from zero.  
     */
-    const T& operator[] (unsigned i) const;
-
+    const T &operator[](unsigned i) const;
 
 protected:
     //
@@ -151,37 +147,34 @@ protected:
 //
 
 template <class T, unsigned N>
-inline
-Vector<T,N>::Vector()
-{}
+inline Vector<T, N>::Vector()
+{
+}
 
 template <class T, unsigned N>
-inline
-T&
-Vector<T,N>::operator[] (unsigned i)
+inline T &
+Vector<T, N>::operator[](unsigned i)
 {
     return vect[i];
 }
 
 template <class T, unsigned N>
-inline
-const T&
-Vector<T,N>::operator[] (unsigned i) const
+inline const T &
+Vector<T, N>::operator[](unsigned i) const
 {
     return vect[i];
 }
 
-
 template <class T, unsigned N>
-Vector<T,N>::Vector (const Vector<T,N>& rhs)
+inline Vector<T, N>::Vector(const Vector<T, N> &rhs)
 {
     for (unsigned i = 0; i < N; ++i)
         vect[i] = rhs.vect[i];
 }
 
 template <class T, unsigned N>
-Vector<T,N>&
-Vector<T,N>::operator= (const Vector<T,N>& rhs)
+inline Vector<T, N> &
+Vector<T, N>::operator=(const Vector<T, N> &rhs)
 {
     for (unsigned i = 0; i < N; ++i)
         vect[i] = rhs.vect[i];
@@ -193,20 +186,18 @@ Vector<T,N>::operator= (const Vector<T,N>& rhs)
 	into one vec of size N1 + N2
 */
 template <class T, unsigned N1, unsigned N2>
-Vector<T, N1+N2> operator+ (Vector<T, N1> vec1, Vector<T, N2> vec2)
+inline Vector<T, N1 + N2> operator+(Vector<T, N1> vec1, Vector<T, N2> vec2)
 {
-	Vector<T, N1 + N2> result;
-	for (unsigned i = 0; i < N1; i++)
-		result[i] = vec1[i];
-	
-	for (unsigned i = N1; i < N2; ++i)
-		result[i] = vec2[i];
-	
-	return result;
+    Vector<T, N1 + N2> result;
+    for (unsigned i = 0; i < N1; i++)
+        result[i] = vec1[i];
+
+    for (unsigned i = N1; i < N2; ++i)
+        result[i] = vec2[i];
+
+    return result;
 }
 
-
-
-}
+} // namespace Parsnip
 
 #endif

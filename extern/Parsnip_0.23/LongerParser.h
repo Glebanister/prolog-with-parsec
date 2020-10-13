@@ -26,76 +26,76 @@
 
 namespace Parsnip
 {
-	template <typename In, typename Out>
-	struct LongerParser : public IParser<In, Out>
-	{
-		LongerParser(ptr<IParser<In, Out>> a, ptr<IParser<In, Out>> b) : first(a), second(b)
-		{
-			this->setName("longer");
-		}
+template <typename In, typename Out>
+struct LongerParser : public IParser<In, Out>
+{
+    LongerParser(ptr<IParser<In, Out>> a, ptr<IParser<In, Out>> b) : first(a), second(b)
+    {
+        this->setName("longer");
+    }
 
-		virtual Result<Out> eval()
-		{
-			typename Reader<In>::IndexT startPos = Reader<In>::pos();
+    virtual Result<Out> eval()
+    {
+        typename Reader<In>::IndexT startPos = Reader<In>::pos();
 
-			Result<Out> result1 = first->parse();
-			typename Reader<In>::IndexT firstPos = Reader<In>::pos();
+        Result<Out> result1 = first->parse();
+        typename Reader<In>::IndexT firstPos = Reader<In>::pos();
 
-			Reader<In>::set_pos(startPos);
+        Reader<In>::set_pos(startPos);
 
-			Result<Out> result2 = second->parse();
-			typename Reader<In>::IndexT secondPos = Reader<In>::pos();
+        Result<Out> result2 = second->parse();
+        typename Reader<In>::IndexT secondPos = Reader<In>::pos();
 
-			if (result1 && result2)
-			{
-				if (firstPos > secondPos)
-				{
-					Reader<In>::set_pos(firstPos);
-					return result1;
-				}
-				else
-				{
-					return result2;
-				}
-			}
-			else if (result1)
-			{
-				Reader<In>::set_pos(firstPos);
-				return result1;
-			}
-			else
-			{
-				return result2;
-			}
-		}
+        if (result1 && result2)
+        {
+            if (firstPos > secondPos)
+            {
+                Reader<In>::set_pos(firstPos);
+                return result1;
+            }
+            else
+            {
+                return result2;
+            }
+        }
+        else if (result1)
+        {
+            Reader<In>::set_pos(firstPos);
+            return result1;
+        }
+        else
+        {
+            return result2;
+        }
+    }
 
-		ptr<IParser<In, Out>> first;
-		ptr<IParser<In, Out>> second;
-	};
+    ptr<IParser<In, Out>> first;
+    ptr<IParser<In, Out>> second;
+};
 
-	template <typename In, typename Out>
-	ptr<IParser<In, Out>> longer(ptr<IParser<In, Out>> a, ptr<IParser<In, Out>> b)
-	{
-		return new LongerParser<In, Out>(a, b);
-	}
+template <typename In, typename Out>
+inline ptr<IParser<In, Out>> longer(ptr<IParser<In, Out>> a, ptr<IParser<In, Out>> b)
+{
+    return new LongerParser<In, Out>(a, b);
+}
 
-	template <typename In, typename Out>
-	ptr<IParser<In, Out>> longest(ptr<IParser<In, Out>> a, ptr<IParser<In, Out>> b)
-	{
-		return longer(a, b);
-	}
+template <typename In, typename Out>
+inline ptr<IParser<In, Out>> longest(ptr<IParser<In, Out>> a, ptr<IParser<In, Out>> b)
+{
+    return longer(a, b);
+}
 
-	template <typename In, typename Out>
-	ptr<IParser<In, Out>> longest(ptr<IParser<In, Out>> a, ptr<IParser<In, Out>> b, ptr<IParser<In, Out>> c)
-	{
-		return longer(longer(a, b), c);
-	}
+template <typename In, typename Out>
+inline ptr<IParser<In, Out>> longest(ptr<IParser<In, Out>> a, ptr<IParser<In, Out>> b, ptr<IParser<In, Out>> c)
+{
+    return longer(longer(a, b), c);
+}
 
-	template <typename In, typename Out>
-	ptr<IParser<In, Out>> longest(ptr<IParser<In, Out>> a, ptr<IParser<In, Out>> b, ptr<IParser<In, Out>> c, ptr<IParser<In, Out>> d)
-	{
-		return longer(longer(a, b), longer(c, d));
-	}
+template <typename In, typename Out>
+inline ptr<IParser<In, Out>> longest(ptr<IParser<In, Out>> a, ptr<IParser<In, Out>> b, ptr<IParser<In, Out>> c, ptr<IParser<In, Out>> d)
+{
+    return longer(longer(a, b), longer(c, d));
+}
 
 } // namespace Parsnip
 

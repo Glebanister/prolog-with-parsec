@@ -6,8 +6,9 @@ set(Parsly extern/Parsnip_0.23/)
 
 add_executable(${EXE} src/main.cpp
                       src/ArgumentParser.cpp
-                      src/SyntaxTree.cpp
-                      src/Exception.cpp)
+                      src/PrologChecker.cpp
+                      src/PrologObject.cpp
+                      src/PrologObjectPrinter.cpp)
 
 target_include_directories(${EXE} PUBLIC include/)
 target_include_directories(${EXE} PUBLIC extern/Parsnip_0.23/)

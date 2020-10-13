@@ -55,84 +55,84 @@ namespace Parsnip
 {
 
 	template <typename Out>
-	ptr<IParser<std::string, Out>> token(ptr<IParser<std::string, Out>> parser)
+	inline ptr<IParser<std::string, Out>> token(ptr<IParser<std::string, Out>> parser)
 	{
 		return skip(whitespace) >> parser >> skip(whitespace);
 	}
 
 	template <typename Out>
-	ptr<IParser<std::string, void>> skip_token(ptr<IParser<std::string, Out>> parser)
+	inline ptr<IParser<std::string, void>> skip_token(ptr<IParser<std::string, Out>> parser)
 	{
 		return token(skip(parser));
 	}
 
-	Parser<string, string>::type token_range(char l, char u)
+	inline Parser<string, string>::type token_range(char l, char u)
 	{
 		return token(range(l, u));
 	}
 
-	Parser<string, string>::type token_ch(char c)
+	inline Parser<string, string>::type token_ch(char c)
 	{
 		return token(ch(c));
 	}
 
-	Parser<string, string>::type token_str(const string &s)
+	inline Parser<string, string>::type token_str(const string &s)
 	{
 		return token(str(s));
 	}
 
-	ptr<IParser<std::string, void>> skip_range(char l, char u)
+	inline ptr<IParser<std::string, void>> skip_range(char l, char u)
 	{
 		return skip(range(l, u));
 	}
 
-	ptr<IParser<std::string, void>> skip_ch(char c)
+	inline ptr<IParser<std::string, void>> skip_ch(char c)
 	{
 		return skip(ch(c));
 	}
-	ptr<IParser<std::string, void>> skip_str(const string &s)
+	inline ptr<IParser<std::string, void>> skip_str(const string &s)
 	{
 		return skip(str(s));
 	}
 
-	ptr<IParser<std::string, void>> skip_token_range(char l, char u)
+	inline ptr<IParser<std::string, void>> skip_token_range(char l, char u)
 	{
 		return skip(token(range(l, u)));
 	}
 
-	ptr<IParser<std::string, void>> skip_token_ch(char c)
+	inline ptr<IParser<std::string, void>> skip_token_ch(char c)
 	{
 		return skip(token(ch(c)));
 	}
 
-	ptr<IParser<std::string, void>> skip_token_str(const string &s)
+	inline ptr<IParser<std::string, void>> skip_token_str(const string &s)
 	{
 		return skip(token(str(s)));
 	}
 
 	template <typename In, typename Out>
-	ptr<IParser<In, void>> skip_optional(ptr<IParser<In, Out>> p)
+	inline ptr<IParser<In, void>> skip_optional(ptr<IParser<In, Out>> p)
 	{
 		return skip(optional(p));
 	}
 
-	ptr<IParser<std::string, void>> not_ch(char c)
+	inline ptr<IParser<std::string, void>> not_ch(char c)
 	{
 		return is_not(ch(c));
 	}
 
-	ptr<IParser<std::string, void>> not_str(const string &s)
+	inline ptr<IParser<std::string, void>> not_str(const string &s)
 	{
 		return is_not(str(s));
 	}
 
-	ptr<IParser<std::string, void>> not_range(char l, char u)
+	inline ptr<IParser<std::string, void>> not_range(char l, char u)
 	{
 		return is_not(range(l, u));
 	}
 
 	template <unsigned int N>
-	Parser<string, string>::type flatten(ptr<IParser<Vector<std::string, N>, std::string>> parser)
+	inline Parser<string, string>::type flatten(ptr<IParser<Vector<std::string, N>, std::string>> parser)
 	{
 		return reduce(concat<std::string>, parser);
 	}

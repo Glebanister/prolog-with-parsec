@@ -22,59 +22,53 @@
 #ifndef PARSNIP_STRING_PARSER_BASE_H
 #define PARSNIP_STRING_PARSER_BASE_H
 
-#include "StringConcatParser.h"
 #include "OptionalParser.h"
+#include "StringConcatParser.h"
 
 namespace Parsnip
 {
 
-	/********************************************
+/********************************************
 	Redefine some combinators for strings
  ********************************************/
 
-	/*
+/*
 	sepBy should build lists of strings
 */
+inline ptr<IParser<string, std::list<string>>> sepBy(ptr<IParser<string, string>> data, ptr<IParser<string, string>> sep, int min = 0, int max = std::numeric_limits<int>::max())
+{
+    return sepBy(data, sep, min, max);
+}
+inline ptr<IParser<string, std::list<string>>> sepBy1(ptr<IParser<string, string>> data, ptr<IParser<string, string>> sep, int max = std::numeric_limits<int>::max())
+{
+    return sepBy(data, sep, 1, max);
+}
+inline ptr<IParser<string, std::list<string>>> sepByAtleast(ptr<IParser<string, string>> data, ptr<IParser<string, string>> sep, int min)
+{
+    return sepBy(data, sep, min);
+}
 
-	ptr<IParser<string, std::list<string>>> sepBy(ptr<IParser<string, string>> data, ptr<IParser<string, string>> sep, int min = 0, int max = std::numeric_limits<int>::max())
-	{
-		return sepBy(data, sep, min, max);
-	}
+//optional string parsers return the empty string
+inline ptr<IParser<string, string>> optional(ptr<IParser<string, string>> parser)
+{
+    return optional(parser, std::string(""));
+}
 
-	ptr<IParser<string, std::list<string>>> sepBy1(ptr<IParser<string, string>> data, ptr<IParser<string, string>> sep, int max = std::numeric_limits<int>::max())
-	{
-		return sepBy(data, sep, 1, max);
-	}
-
-	ptr<IParser<string, std::list<string>>> sepByAtleast(ptr<IParser<string, string>> data, ptr<IParser<string, string>> sep, int min)
-	{
-		return sepBy(data, sep, min);
-	}
-
-	//optional string parsers return the empty string
-	ptr<IParser<string, string>> optional(ptr<IParser<string, string>> parser)
-	{
-		return optional(parser, std::string(""));
-	}
-
-	/*
+/*
 	many should concatenate strings by default 
 */
-
-	ptr<IParser<string, string>> many(ptr<IParser<string, string>> a, int min = 0, int max = std::numeric_limits<int>::max())
-	{
-		return many<Concat<string>, string, string>(a, min, max);
-	}
-
-	ptr<IParser<string, string>> many1(ptr<IParser<string, string>> a)
-	{
-		return many(a, 1);
-	}
-
-	ptr<IParser<string, string>> atleast(ptr<IParser<string, string>> a, int min)
-	{
-		return many(a, min);
-	}
+inline ptr<IParser<string, string>> many(ptr<IParser<string, string>> a, int min = 0, int max = std::numeric_limits<int>::max())
+{
+    return many<Concat<string>, string, string>(a, min, max);
+}
+inline ptr<IParser<string, string>> many1(ptr<IParser<string, string>> a)
+{
+    return many(a, 1);
+}
+inline ptr<IParser<string, string>> atleast(ptr<IParser<string, string>> a, int min)
+{
+    return many(a, min);
+}
 
 } // namespace Parsnip
 

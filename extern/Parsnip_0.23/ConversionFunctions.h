@@ -22,18 +22,17 @@
 #ifndef PARSNIP_CONVERSION_FUNCTIONS_H
 #define PARSNIP_CONVERSION_FUNCTIONS_H
 
-#include <map>
 #include "Vector.h"
+#include <map>
 
 namespace Parsnip
 {
-	
-	template <typename T>
-	std::pair<T, T> to_pair(Vector<T, 2> vec)
-	{
-		return make_pair(vec[0], vec[1]);
-	}
-
+template <typename T>
+inline std::pair<T, T> to_pair(Vector<T, 2> vec)
+{
+    return make_pair(vec[0], vec[1]);
 }
+
+} // namespace Parsnip
 
 #endif

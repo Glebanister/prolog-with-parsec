@@ -62,7 +62,7 @@ private:
     char myChar;
 };
 
-ptr<IParser<string, string>> ch(char c)
+inline ptr<IParser<string, string>> ch(char c)
 {
     static Memoizer<char, ptr<IParser<string, string>>> memoizer;
     if (memoizer.contains(c))

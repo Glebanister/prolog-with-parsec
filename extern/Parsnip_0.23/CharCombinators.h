@@ -30,47 +30,43 @@ namespace Parsnip
 /*
 	tuple sequencing
 */
-ptr<IParser<string, Tuple2<string, string> > > operator >> (char c, ptr<IParser<string, string> > p)
+inline ptr<IParser<string, Tuple2<string, string>>> operator>>(char c, ptr<IParser<string, string>> p)
 {
-	return ch(c) >> p;
+    return ch(c) >> p;
 }
 
-
-ptr<IParser<string, Tuple2<string, string> > > operator >> ( ptr<IParser<string, string> > p, char c)
+inline ptr<IParser<string, Tuple2<string, string>>> operator>>(ptr<IParser<string, string>> p, char c)
 {
-	return p >> ch(c);
+    return p >> ch(c);
 }
 
 /*
 	alternation
 */
 
-ptr<IParser<string, string> > operator | (char c, ptr<IParser<string, string> > p)
+inline ptr<IParser<string, string>> operator|(char c, ptr<IParser<string, string>> p)
 {
-	return ch(c) | p;
+    return ch(c) | p;
 }
 
-
-ptr<IParser<string, string> > operator | ( ptr<IParser<string, string> > p, char c)
+inline ptr<IParser<string, string>> operator|(ptr<IParser<string, string>> p, char c)
 {
-	return p | ch(c);
+    return p | ch(c);
 }
 
 /*
 	concat sequence
 */
 
-ptr<IParser<string, string> > operator + (char c, ptr<IParser<string, string> > p)
+inline ptr<IParser<string, string>> operator+(char c, ptr<IParser<string, string>> p)
 {
-	return ch(c)+ p;
+    return ch(c) + p;
 }
 
-
-ptr<IParser<string, string> > operator + ( ptr<IParser<string, string> > p, char c)
+inline ptr<IParser<string, string>> operator+(ptr<IParser<string, string>> p, char c)
 {
-	return p +  ch(c);
+    return p + ch(c);
 }
 
-
-}
+} // namespace Parsnip
 #endif

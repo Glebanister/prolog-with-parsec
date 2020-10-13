@@ -22,68 +22,63 @@
 #ifndef PARSNIP_MEMOIZER_H
 #define PARSNIP_MEMOIZER_H
 
-#include <map>
 #include "CacheBase.h"
+#include <map>
 namespace Parsnip
 {
 
-	template <typename S, typename T>
-	struct Memoizer
-	{
-		Memoizer()
-		{
-		}
+template <typename S, typename T>
+struct Memoizer
+{
+    Memoizer() = default;
+    ~Memoizer() = default;
 
-		~Memoizer()
-		{
-		}
+    typedef typename std::map<S, T>::iterator MapIter;
 
-		typedef typename std::map<S, T>::iterator MapIter;
+    bool contains(const S &input)
+    {
+        //check is input has already been memoized
+        MapIter iter = memos.find(input);
 
-		bool contains(const S &input)
-		{
-			//check is input has already been memoized
-			MapIter iter = memos.find(input);
+        return !(iter == memos.end());
+    }
 
-			return !(iter == memos.end());
-		}
+    const T &insert(const S &input, const T &result)
+    {
+        memos.insert({input, result});
+        return result;
+    }
 
-		const T &insert(const S &input, const T &result)
-		{
-			memos.insert({input, result});
-			return result;
-		}
+    const T &get(const S &input)
+    {
+        MapIter iter = memos.find(input);
+        return (*iter).second;
+    }
 
-		const T &get(const S &input)
-		{
-			MapIter iter = memos.find(input);
-			return (*iter).second;
-		}
+    T memo(S input, const T &result)
+    {
 
-		T memo(S input, const T &result)
-		{
+        //check is input has already been memoized
+        MapIter iter = memos.find(input);
 
-			//check is input has already been memoized
-			MapIter iter = memos.find(input);
+        //if new, add it to the cache
+        if (iter == memos.end())
+        {
+            memos.insert(std::make_pair<S, T>(input, result));
+            return result;
+        }
 
-			//if new, add it to the cache
-			if (iter == memos.end())
-			{
-				memos.insert(std::make_pair<S, T>(input, result));
-				return result;
-			}
+        return (*iter).second;
+    }
 
-			return (*iter).second;
-		}
+    virtual void clear()
+    {
+        memos.clear();
+    }
 
-		virtual void clear()
-		{
-			memos.clear();
-		}
-
-	private:
-		std::map<S, T> memos;
-	};
+private:
+    std::map<S, T> memos;
+};
 
 } // namespace Parsnip
 

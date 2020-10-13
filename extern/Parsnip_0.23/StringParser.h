@@ -22,7 +22,6 @@
 #ifndef PARSNIP_STRING_PARSER_H
 #define PARSNIP_STRING_PARSER_H
 
-	
 #include <string>
 using std::string;
 
@@ -33,49 +32,48 @@ namespace Parsnip
 
 struct StringParser : public IParser<string, string>
 {
-	StringParser(const std::string& _str) : str(_str) 
-	{
-		this->setName(string("StringParser(\"") + str + "\")");
-	}
+    StringParser(const std::string &_str) : str(_str)
+    {
+        this->setName(string("StringParser(\"") + str + "\")");
+    }
 
 protected:
-	virtual Result<string> eval()
-	{
-		unsigned i = 0;
-		char currChar;
-		while (i < str.length() && Reader<string>::hasNext())
-		{
-			currChar = Reader<string>::get();
-			if (currChar != str[i]) 
-			{	
-				Reader<string>::rewind();
-				break;	
-			}
-			++i;
-		}
+    virtual Result<string> eval()
+    {
+        unsigned i = 0;
+        char currChar;
+        while (i < str.length() && Reader<string>::hasNext())
+        {
+            currChar = Reader<string>::get();
+            if (currChar != str[i])
+            {
+                Reader<string>::rewind();
+                break;
+            }
+            ++i;
+        }
 
-		//if string was exhausted, we succeeded
-		if (i == str.length())
-		{
-			return Result<string>::succeed(str);
-		}
-		
-		return Result<string>::fail();
-	}
-	
+        //if string was exhausted, we succeeded
+        if (i == str.length())
+        {
+            return Result<string>::succeed(str);
+        }
+
+        return Result<string>::fail();
+    }
+
 private:
-	string str;
+    string str;
 };
 
-
-
-ptr<IParser<string, string> >  str(const string& s)
-{	
-	static Memoizer<string, ptr<IParser<string, string> > > memoizer;
-	if (memoizer.contains(s)) return memoizer.get(s);
-	return memoizer.insert(s, new StringParser(s));
+inline ptr<IParser<string, string>> str(const string &s)
+{
+    static Memoizer<string, ptr<IParser<string, string>>> memoizer;
+    if (memoizer.contains(s))
+        return memoizer.get(s);
+    return memoizer.insert(s, new StringParser(s));
 }
 
-}
+} // namespace Parsnip
 
 #endif

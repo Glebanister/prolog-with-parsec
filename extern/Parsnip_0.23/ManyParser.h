@@ -29,72 +29,72 @@
 namespace Parsnip
 {
 
-template <typename Accumulator,  typename AccOut, typename In, typename ParserOut>
+template <typename Accumulator, typename AccOut, typename In, typename ParserOut>
 struct ManyParser : public IParser<In, AccOut>
 {
-	ManyParser(ptr<IParser<In, ParserOut> > p, int _min, int _max) : parser(p), min(_min), max(_max) 
-	{
-		this->setName("many");
-	}	
-	
-protected:
-	virtual Result<AccOut> eval()
-	{
-		Accumulator acc;
-		Result<ParserOut> result;
-		
-		//save position before trying to parse so we can restore it if we fail
-		typename Reader<In>::IndexT lastPos = Reader<In>::pos();
+    ManyParser(ptr<IParser<In, ParserOut>> p, int _min, int _max) : parser(p), min(_min), max(_max)
+    {
+        this->setName("many");
+    }
 
-		int i = 0;
-		while (i < max && Reader<In>::hasNext()) {
-			
-			result = parser->parse();
-			if (result) 
-			{
-				acc.accum( result.data());
-			}
-			else { break; }
-			
-			++i;
-		} 
-		
-		if (i < min)
-		{
-			Reader<In>::set_pos(lastPos);	
-			return Result<AccOut>::fail();
-		}
-		else
-		{
-			return Result<AccOut>::succeed(acc.result());			
-		}
-	}
-	
-	ptr<IParser<In, ParserOut> > parser; 
-	int min, max;
+protected:
+    virtual Result<AccOut> eval()
+    {
+        Accumulator acc;
+        Result<ParserOut> result;
+
+        //save position before trying to parse so we can restore it if we fail
+        typename Reader<In>::IndexT lastPos = Reader<In>::pos();
+
+        int i = 0;
+        while (i < max && Reader<In>::hasNext())
+        {
+
+            result = parser->parse();
+            if (result)
+            {
+                acc.accum(result.data());
+            }
+            else
+            {
+                break;
+            }
+
+            ++i;
+        }
+
+        if (i < min)
+        {
+            Reader<In>::set_pos(lastPos);
+            return Result<AccOut>::fail();
+        }
+        else
+        {
+            return Result<AccOut>::succeed(acc.result());
+        }
+    }
+
+    ptr<IParser<In, ParserOut>> parser;
+    int min, max;
 };
 
-
-
-template < typename Acc, typename In, typename Out>
-ptr<IParser<In, typename Acc::ResultType> > many(ptr<IParser<In, Out> > a, int min = 0, int max = std::numeric_limits<int>::max())
+template <typename Acc, typename In, typename Out>
+inline ptr<IParser<In, typename Acc::ResultType>> many(ptr<IParser<In, Out>> a, int min = 0, int max = std::numeric_limits<int>::max())
 {
-	return new ManyParser<Acc, typename Acc::ResultType, In, Out>(a, min, max);
+    return new ManyParser<Acc, typename Acc::ResultType, In, Out>(a, min, max);
 }
 
 template <typename Acc, typename In, typename Out>
-ptr<IParser<In, typename Acc::ResultType> > many1(ptr<IParser<In, Out> > a)
+inline ptr<IParser<In, typename Acc::ResultType>> many1(ptr<IParser<In, Out>> a)
 {
-	return many<Acc>(a, 1);
+    return many<Acc>(a, 1);
 }
 
 template <typename Acc, typename In, typename Out>
-ptr<IParser<In, typename Acc::ResultType> > atleast(ptr<IParser<In, Out> > a, int min)
+inline ptr<IParser<In, typename Acc::ResultType>> atleast(ptr<IParser<In, Out>> a, int min)
 {
-	return many<Acc>(a, min);
+    return many<Acc>(a, min);
 }
-
-
 
 /*
 template <typename In, typename Out>
@@ -116,5 +116,5 @@ ptr<IParser<std::map<Out, Out>, In> > atleastMap(ptr<IParser<In, Vector<Out, 2> 
 }
 */
 
-}
+} // namespace Parsnip
 #endif

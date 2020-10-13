@@ -27,157 +27,157 @@
 namespace Parsnip
 {
 
-	/*  A CreateParser accepts another parser (P In -> Out) and 
+/*  A CreateParser accepts another parser (P In -> Out) and 
 	uses its return value to create a CreateType,
 	which is cast as a ReturnType.
 	In short: mapping In => Out => CreateType => ReturnType
 */
 
-	template <typename CreateType, typename ReturnType, typename In, typename Out>
-	struct CreateParser : public IParser<In, ReturnType>
-	{
-		typedef Result<ReturnType> NewOut;
+template <typename CreateType, typename ReturnType, typename In, typename Out>
+struct CreateParser : public IParser<In, ReturnType>
+{
+    typedef Result<ReturnType> NewOut;
 
-		CreateParser(ptr<IParser<In, Out>> p) : myParser(p) {}
+    CreateParser(ptr<IParser<In, Out>> p) : myParser(p) {}
 
-		NewOut eval()
-		{
-			Result<Out> result = myParser->parse();
+    NewOut eval()
+    {
+        Result<Out> result = myParser->parse();
 
-			if (result)
-			{
-				return NewOut::succeed(new CreateType(result.data()));
-			}
+        if (result)
+        {
+            return NewOut::succeed(new CreateType(result.data()));
+        }
 
-			return NewOut::fail();
-		}
+        return NewOut::fail();
+    }
 
-		ptr<IParser<In, Out>> myParser;
-	};
+    ptr<IParser<In, Out>> myParser;
+};
 
-	/*
+/*
 	Constructor takes no arguments
 */
 
-	template <typename CreateType, typename ReturnType, typename In>
-	struct CreateParser<CreateType, ReturnType, In, void> : public IParser<In, ReturnType>
-	{
-		typedef Result<ReturnType> NewOut;
+template <typename CreateType, typename ReturnType, typename In>
+struct CreateParser<CreateType, ReturnType, In, void> : public IParser<In, ReturnType>
+{
+    typedef Result<ReturnType> NewOut;
 
-		CreateParser(ptr<IParser<In, void>> p) : myParser(p) {}
+    CreateParser(ptr<IParser<In, void>> p) : myParser(p) {}
 
-		NewOut eval()
-		{
-			if (myParser->parse())
-			{
-				return NewOut::succeed(new CreateType);
-			}
+    NewOut eval()
+    {
+        if (myParser->parse())
+        {
+            return NewOut::succeed(new CreateType);
+        }
 
-			return NewOut::fail();
-		}
+        return NewOut::fail();
+    }
 
-		ptr<IParser<In, void>> myParser;
-	};
+    ptr<IParser<In, void>> myParser;
+};
 
-	/*
+/*
 	Constructor takes 2 arguments
 */
 
-	template <typename CreateType, typename ReturnType, typename In, typename Out1, typename Out2>
-	struct CreateParser<CreateType, ReturnType, In, Tuple2<Out1, Out2>> : public IParser<In, ReturnType>
-	{
-		typedef Result<ReturnType> NewOut;
-		typedef Tuple2<Out1, Out2> TupleT;
+template <typename CreateType, typename ReturnType, typename In, typename Out1, typename Out2>
+struct CreateParser<CreateType, ReturnType, In, Tuple2<Out1, Out2>> : public IParser<In, ReturnType>
+{
+    typedef Result<ReturnType> NewOut;
+    typedef Tuple2<Out1, Out2> TupleT;
 
-		CreateParser(ptr<IParser<In, TupleT>> p) : myParser(p) {}
+    CreateParser(ptr<IParser<In, TupleT>> p) : myParser(p) {}
 
-		NewOut eval()
-		{
+    NewOut eval()
+    {
 
-			Result<TupleT> result = myParser->parse();
-			if (result)
-			{
-				TupleT tuple = result.data();
-				return NewOut::succeed(new CreateType(tuple.first, tuple.second));
-			}
+        Result<TupleT> result = myParser->parse();
+        if (result)
+        {
+            TupleT tuple = result.data();
+            return NewOut::succeed(new CreateType(tuple.first, tuple.second));
+        }
 
-			return NewOut::fail();
-		}
+        return NewOut::fail();
+    }
 
-		ptr<IParser<In, TupleT>> myParser;
-	};
+    ptr<IParser<In, TupleT>> myParser;
+};
 
-	/*
+/*
 	Constructor takes 3 arguments
 */
 
-	template <typename CreateType, typename ReturnType, typename In, typename Out1, typename Out2, typename Out3>
-	struct CreateParser<CreateType, ReturnType, In, Tuple3<Out1, Out2, Out3>> : public IParser<In, ReturnType>
-	{
-		typedef Result<ReturnType> NewOut;
-		typedef Tuple3<Out1, Out2, Out3> TupleT;
+template <typename CreateType, typename ReturnType, typename In, typename Out1, typename Out2, typename Out3>
+struct CreateParser<CreateType, ReturnType, In, Tuple3<Out1, Out2, Out3>> : public IParser<In, ReturnType>
+{
+    typedef Result<ReturnType> NewOut;
+    typedef Tuple3<Out1, Out2, Out3> TupleT;
 
-		CreateParser(ptr<IParser<In, TupleT>> p) : myParser(p) {}
+    CreateParser(ptr<IParser<In, TupleT>> p) : myParser(p) {}
 
-		NewOut eval()
-		{
+    NewOut eval()
+    {
 
-			Result<TupleT> result = myParser->parse();
-			if (result)
-			{
-				TupleT tuple = result.data();
-				return NewOut::succeed(new CreateType(tuple.first, tuple.second, tuple.third));
-			}
+        Result<TupleT> result = myParser->parse();
+        if (result)
+        {
+            TupleT tuple = result.data();
+            return NewOut::succeed(new CreateType(tuple.first, tuple.second, tuple.third));
+        }
 
-			return NewOut::fail();
-		}
+        return NewOut::fail();
+    }
 
-		ptr<IParser<In, TupleT>> myParser;
-	};
+    ptr<IParser<In, TupleT>> myParser;
+};
 
-	/*
+/*
 	Constructor takes 4 arguments
 */
 
-	template <typename CreateType, typename ReturnType, typename In, typename Out1, typename Out2, typename Out3, typename Out4>
-	struct CreateParser<CreateType, ReturnType, In, Tuple4<Out1, Out2, Out3, Out4>> : public IParser<In, ReturnType>
-	{
-		typedef Result<ReturnType> NewOut;
-		typedef Tuple4<Out1, Out2, Out3, Out4> TupleT;
+template <typename CreateType, typename ReturnType, typename In, typename Out1, typename Out2, typename Out3, typename Out4>
+struct CreateParser<CreateType, ReturnType, In, Tuple4<Out1, Out2, Out3, Out4>> : public IParser<In, ReturnType>
+{
+    typedef Result<ReturnType> NewOut;
+    typedef Tuple4<Out1, Out2, Out3, Out4> TupleT;
 
-		CreateParser(ptr<IParser<In, TupleT>> p) : myParser(p) {}
+    CreateParser(ptr<IParser<In, TupleT>> p) : myParser(p) {}
 
-		NewOut eval()
-		{
+    NewOut eval()
+    {
 
-			Result<TupleT> result = myParser->parse();
-			if (result)
-			{
-				TupleT tuple = result.data();
-				return NewOut::succeed(new CreateType(tuple.first, tuple.second, tuple.third, tuple.fourth));
-			}
+        Result<TupleT> result = myParser->parse();
+        if (result)
+        {
+            TupleT tuple = result.data();
+            return NewOut::succeed(new CreateType(tuple.first, tuple.second, tuple.third, tuple.fourth));
+        }
 
-			return NewOut::fail();
-		}
+        return NewOut::fail();
+    }
 
-		ptr<IParser<In, TupleT>> myParser;
-	};
+    ptr<IParser<In, TupleT>> myParser;
+};
 
-	template <typename CreateType, typename ReturnType, typename In, typename Out>
-	ptr<IParser<In, ReturnType>> create(ptr<IParser<In, Out>> parser)
-	{
-		return new CreateParser<CreateType, ReturnType, In, Out>(parser);
-	}
+template <typename CreateType, typename ReturnType, typename In, typename Out>
+inline ptr<IParser<In, ReturnType>> create(ptr<IParser<In, Out>> parser)
+{
+    return new CreateParser<CreateType, ReturnType, In, Out>(parser);
+}
 
-	/*
+/*
 	if return type is omitted it's assumed to be a pointer to CreateType
 */
 
-	template <typename CreateType, typename In, typename Out>
-	ptr<IParser<In, CreateType *>> create(ptr<IParser<In, Out>> parser)
-	{
-		return new CreateParser<CreateType, CreateType *, In, Out>(parser);
-	}
+template <typename CreateType, typename In, typename Out>
+inline ptr<IParser<In, CreateType *>> create(ptr<IParser<In, Out>> parser)
+{
+    return new CreateParser<CreateType, CreateType *, In, Out>(parser);
+}
 
 } // namespace Parsnip
 

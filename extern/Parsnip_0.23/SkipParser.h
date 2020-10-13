@@ -27,37 +27,37 @@
 namespace Parsnip
 {
 
-	/*
+/*
 	Skipping a parse means have a parser of type <In, void>
 	which consumes input but returns nothing
 */
 
-	template <typename In, typename Out>
-	struct SkipParser : public IParser<In, void>
-	{
-		SkipParser(ptr<IParser<In, Out>> p) : myParser(p) {}
+template <typename In, typename Out>
+struct SkipParser : public IParser<In, void>
+{
+    SkipParser(ptr<IParser<In, Out>> p) : myParser(p) {}
 
-		Result<void> eval()
-		{
-			Result<Out> result = myParser->parse();
-			return result ? Result<void>::succeed() : Result<void>::fail();
-		}
-		ptr<IParser<In, Out>> myParser;
-	};
+    Result<void> eval()
+    {
+        Result<Out> result = myParser->parse();
+        return result ? Result<void>::succeed() : Result<void>::fail();
+    }
+    ptr<IParser<In, Out>> myParser;
+};
 
-	template <typename In, typename Out>
-	ptr<IParser<In, void>> skip(const ptr<IParser<In, Out>> &parser)
-	{
-		ptr<IParser<In, void>> p = new SkipParser<In, Out>(parser);
-		p->setName("skip {" + p->getName() + "}");
-		return p;
-	}
+template <typename In, typename Out>
+inline ptr<IParser<In, void>> skip(const ptr<IParser<In, Out>> &parser)
+{
+    ptr<IParser<In, void>> p = new SkipParser<In, Out>(parser);
+    p->setName("skip {" + p->getName() + "}");
+    return p;
+}
 
-	template <typename In, typename Out>
-	ptr<IParser<In, Out>> between(ptr<IParser<In, Out>> left_delim, ptr<IParser<In, Out>> center, ptr<IParser<In, Out>> right_delim)
-	{
-		return skip(left_delim) >> center >> skip(right_delim);
-	}
+template <typename In, typename Out>
+inline ptr<IParser<In, Out>> between(ptr<IParser<In, Out>> left_delim, ptr<IParser<In, Out>> center, ptr<IParser<In, Out>> right_delim)
+{
+    return skip(left_delim) >> center >> skip(right_delim);
+}
 
 } // namespace Parsnip
 

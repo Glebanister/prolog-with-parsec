@@ -29,47 +29,44 @@
 	will inform us of name clashes
 	we can disable the compiler warning
 */
-#pragma warning (disable:4503)
+#pragma warning(disable : 4503)
 
-#include <exception>
 #include "ParsnipBase.h"
+#include <exception>
 
 namespace Parsnip
 {
-template <typename T> 
+template <typename T>
 struct Maybe
 {
-	Maybe() : valid(false) {}
-	Maybe(const T& _data, bool _valid = true) :  data(_data), valid(_valid) {} 
-	Maybe(const Maybe<T>& other) : data(other.data), valid(other.valid) { } 
+    Maybe() : valid(false) {}
+    Maybe(const T &_data, bool _valid = true) : data(_data), valid(_valid) {}
+    Maybe(const Maybe<T> &other) : data(other.data), valid(other.valid) {}
 
-	
-	operator bool() const { return valid; }
-	bool operator!()  const { return !valid; }
-	
-	const T& get() const
-	{
-		return data;
-	}
-	
+    operator bool() const { return valid; }
+    bool operator!() const { return !valid; }
+
+    const T &get() const
+    {
+        return data;
+    }
+
 private:
-	bool valid;
-	T data;
+    bool valid;
+    T data;
 };
 
-template<typename T>
-Maybe<T> just(const T& t)
+template <typename T>
+inline Maybe<T> just(const T &t)
 {
-	return Maybe<T>(t, true);
+    return Maybe<T>(t, true);
 }
 
-template<typename T>
-Maybe<T> nothing()
+template <typename T>
+inline Maybe<T> nothing()
 {
-	return Maybe<T>();
+    return Maybe<T>();
 }
-
-
 
 /*
 struct GotNothing : public std::exception
@@ -84,7 +81,6 @@ struct GotNothing : public std::exception
 };
 */
 
-
-}
+} // namespace Parsnip
 
 #endif

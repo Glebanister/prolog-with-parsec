@@ -27,22 +27,22 @@
 
 namespace Parsnip
 {
-	struct ParsnipException : public std::exception
-	{
-		ParsnipException(const std::string& _error) throw()
-			: errorMsg("Parser error: " + _error)
-		{}
+struct ParsnipException : public std::exception
+{
+    ParsnipException(const std::string &_error) throw()
+        : errorMsg("Parser error: " + _error)
+    {
+    }
 
-		~ParsnipException() throw() {}
-    
-		virtual const char* what() const throw()
-		{
-			return errorMsg.c_str(); 
-		}
-    
+    ~ParsnipException() throw() {}
 
-	private:
-		std::string errorMsg;         
-	};
-}
+    virtual const char *what() const throw()
+    {
+        return errorMsg.c_str();
+    }
+
+private:
+    std::string errorMsg;
+};
+} // namespace Parsnip
 #endif

@@ -28,32 +28,29 @@ namespace Parsnip
 template <typename In, typename Out>
 struct SucceedParser : public IParser<In, Out>
 {
-	SucceedParser(const Out& _val) : val(_val) { }
-		
+    SucceedParser(const Out &_val) : val(_val) {}
+
 protected:
-		virtual Result<Out> eval()
-		{
-			return Result<Out>::succeed(val);
-		}
+    virtual Result<Out> eval()
+    {
+        return Result<Out>::succeed(val);
+    }
 
 private:
-	Out val;
-		
+    Out val;
 };
 
 template <typename In, typename Out>
-ptr< IParser<In, Out> > succeed (const Out& val)
+inline ptr<IParser<In, Out>> succeed(const Out &val)
 {
-	return new SucceedParser<In, Out>(val);
+    return new SucceedParser<In, Out>(val);
 }
-
 
 template <typename Out>
-ptr< IParser<std::string, Out> > succeed (const Out& val)
+inline ptr<IParser<std::string, Out>> succeed(const Out &val)
 {
-	return new SucceedParser<std::string, Out>(val);
+    return new SucceedParser<std::string, Out>(val);
 }
 
-
-}
+} // namespace Parsnip
 #endif

@@ -25,76 +25,71 @@
 #include <string>
 using std::string;
 
-#include "Parser.h"
 #include "ManyParser.h"
+#include "Parser.h"
 
 namespace Parsnip
 {
-	
+
 struct StringConcatParser : public IParser<string, string>
 {
 
-	StringConcatParser(ptr<IParser<string, string> > _a, ptr<IParser<string, string> > _b) : a(_a), b(_b) 
-	{
-		this->setName("str_concat");
-	}
+    StringConcatParser(ptr<IParser<string, string>> _a, ptr<IParser<string, string>> _b) : a(_a), b(_b)
+    {
+        this->setName("str_concat");
+    }
 
 protected:
-	virtual Result<string> eval()
-	{
-		Result<string> result1 = a->parse();
+    virtual Result<string> eval()
+    {
+        Result<string> result1 = a->parse();
 
-		if (result1)
-		{
-			Result<string> result2 = b->parse();
-			if (result2) 
-			{
-				return Result<string>::succeed(result1.data() + result2.data());
-			}
-			
-			return Result<string>::fail();
-		}
-		
-		return Result<string>::fail();	
-	}
+        if (result1)
+        {
+            Result<string> result2 = b->parse();
+            if (result2)
+            {
+                return Result<string>::succeed(result1.data() + result2.data());
+            }
 
-	ptr<IParser<string, string> > a;
-	ptr<IParser<string, string> > b;
+            return Result<string>::fail();
+        }
+
+        return Result<string>::fail();
+    }
+
+    ptr<IParser<string, string>> a;
+    ptr<IParser<string, string>> b;
 };
 
-
-ptr<IParser<string, string> > concat (ptr<IParser<string, string> > a, ptr<IParser<string, string> > b)
+inline ptr<IParser<string, string>> concat(ptr<IParser<string, string>> a, ptr<IParser<string, string>> b)
 {
-	typedef IParser<string, string> StrParser;
-	static Memoizer<std::pair<StrParser*, StrParser*>, ptr<StrParser> > memoizer;
-	std::pair<StrParser*, StrParser*> p_pair = std::make_pair(a.GetRawPointer(), b.GetRawPointer());
-	if (memoizer.contains(p_pair)) return memoizer.get(p_pair);
-	return memoizer.insert(p_pair, new StringConcatParser(a,b));
+    typedef IParser<string, string> StrParser;
+    static Memoizer<std::pair<StrParser *, StrParser *>, ptr<StrParser>> memoizer;
+    std::pair<StrParser *, StrParser *> p_pair = std::make_pair(a.GetRawPointer(), b.GetRawPointer());
+    if (memoizer.contains(p_pair))
+        return memoizer.get(p_pair);
+    return memoizer.insert(p_pair, new StringConcatParser(a, b));
 }
 
-
-
-ptr<IParser<string, string> > operator+ (ptr<IParser<string, string> > a, ptr<IParser<string, string> > b)
+inline ptr<IParser<string, string>> operator+(ptr<IParser<string, string>> a, ptr<IParser<string, string>> b)
 {
-		return concat(a, b);
+    return concat(a, b);
 }
-
-ptr<IParser<string, string> > operator+ (ptr<IParser<string, void> > a, ptr<IParser<string, string> > b)
+inline ptr<IParser<string, string>> operator+(ptr<IParser<string, void>> a, ptr<IParser<string, string>> b)
 {
-	return a >> b;
+    return a >> b;
 }
 
-
-ptr<IParser<string, string> > operator+ (ptr<IParser<string, string> > a, ptr<IParser<string, void> > b)
+inline ptr<IParser<string, string>> operator+(ptr<IParser<string, string>> a, ptr<IParser<string, void>> b)
 {
-	return a >> b;
+    return a >> b;
 }
-
-ptr<IParser<string, void> > operator+ (ptr<IParser<string, void> > a, ptr<IParser<string, void> > b)
+inline ptr<IParser<string, void>> operator+(ptr<IParser<string, void>> a, ptr<IParser<string, void>> b)
 {
-	return a >> b;
+    return a >> b;
 }
 
-}
+} // namespace Parsnip
 
 #endif

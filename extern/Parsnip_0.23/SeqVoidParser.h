@@ -34,30 +34,29 @@ namespace Parsnip
 template <typename In>
 struct SeqVoidParser : public IParser<In, void>
 {
-	SeqVoidParser( ptr<IParser<In, void> > a, ptr<IParser<In, void> > b ) : first(a), second(b) {}
-	
-	virtual Result<void> eval()
-	{
-		Result<void> result1 = first->parse();
-		if(result1)
-		{ 
-			Result<void> result2 = second->parse();
-		
-			if (result2) 
-			{
-				return Result<void>::succeed();
-			}
-			
-			return Result<void>::fail();
-		}
-		return Result<void>::fail();
-	
-	}
-	
-	ptr<IParser<In, void> > first;
-	ptr<IParser<In, void> > second;
+    SeqVoidParser(ptr<IParser<In, void>> a, ptr<IParser<In, void>> b) : first(a), second(b) {}
+
+    virtual Result<void> eval()
+    {
+        Result<void> result1 = first->parse();
+        if (result1)
+        {
+            Result<void> result2 = second->parse();
+
+            if (result2)
+            {
+                return Result<void>::succeed();
+            }
+
+            return Result<void>::fail();
+        }
+        return Result<void>::fail();
+    }
+
+    ptr<IParser<In, void>> first;
+    ptr<IParser<In, void>> second;
 };
 
-}
+} // namespace Parsnip
 
 #endif

@@ -28,147 +28,149 @@
 using yasper::ptr;
 
 #include <iostream>
-using std::endl;
 using std::cout;
+using std::endl;
 
 #include <fstream>
 
 #include <map>
 
 //for conversions
-#include <typeinfo>
-#include <stdexcept>
-#include <sstream>
-#include <iomanip>
 #include <iomanip>
 #include <limits>
- 
+#include <sstream>
+#include <stdexcept>
+#include <typeinfo>
 
 namespace Parsnip
 {
 
- 
- /* 
+/* 
     to_string and fromString conversion taken from C++ FAQ Lite at 
     http://www.parashift.com/c++-faq-lite/misc-technical-issues.html 
 */
- 
- class BadConversion : public std::runtime_error {
- public:
-   BadConversion(const std::string& s)
-     : std::runtime_error(s)
-     { }
- };
- 
- template<typename T>
- inline std::string to_string(const T& x)
- {
-	std::ostringstream o;
-	if ( !(o << x) )
+
+class BadConversion : public std::runtime_error
+{
+public:
+    BadConversion(const std::string &s)
+        : std::runtime_error(s)
     {
-		throw BadConversion(std::string("to_string(") + typeid(x).name() + ")");
-	}
-	
-	return o.str();
- }
-    
- template<> inline std::string to_string<bool>(const bool& x)
- {
-   std::ostringstream out;
-   if ( !(out << std::boolalpha << x))
-   {
-		throw BadConversion(std::string("to_string(bool)"));
-   }
-   return out.str();
- }
- 
- template<> inline std::string to_string<double>(const double& x)
- {
-   const int sigdigits = std::numeric_limits<double>::digits10;
-   std::ostringstream out;
-   if ( !(out << std::setprecision(sigdigits) << x))
-   {
-		throw BadConversion(std::string("to_string(double"));
-   }
-   return out.str();
- }
- 
- template<> inline std::string to_string<float>(const float& x)
- {
-   const int sigdigits = std::numeric_limits<float>::digits10;
-   std::ostringstream out;
-   out << std::setprecision(sigdigits) << x;
-   return out.str();
- }
- 
- template<> inline std::string to_string<long double>(const long double& x)
- {
-   const int sigdigits = std::numeric_limits<long double>::digits10;
-   std::ostringstream out;
-   if ( !(out << std::setprecision(sigdigits) << x))
-   {
-		throw BadConversion(std::string("to_string(float)"));
-   }
-   return out.str();
- }
- 
- 
-template<typename T>
-inline void fromStringByRef(const std::string& s, T& x, bool failIfLeftoverChars = true)
+    }
+};
+
+template <typename T>
+inline std::string to_string(const T &x)
 {
-	std::istringstream i(s);
-	char c;
-	if ( !(i >> x ) || (failIfLeftoverChars && i.get(c)) ) throw BadConversion(s);
+    std::ostringstream o;
+    if (!(o << x))
+    {
+        throw BadConversion(std::string("to_string(") + typeid(x).name() + ")");
+    }
+
+    return o.str();
 }
 
-
-inline void fromStringByRef(const std::string& s, double& x, bool failIfLeftoverChars = true)
+template <>
+inline std::string to_string<bool>(const bool &x)
 {
-	const int sigdigits = std::numeric_limits<double>::digits10;
- 
-	std::istringstream i(s);
-	char c;
-	if ( !(i >> x) || (failIfLeftoverChars && i.get(c)) ) throw BadConversion(s);
+    std::ostringstream out;
+    if (!(out << std::boolalpha << x))
+    {
+        throw BadConversion(std::string("to_string(bool)"));
+    }
+    return out.str();
 }
 
-
-/* converts from string to T returning T by value */
-template<typename T>
-inline T fromString(const std::string s)
+template <>
+inline std::string to_string<double>(const double &x)
 {
-	T x;
-	fromStringByRef(s, x);
-	return x;
+    const int sigdigits = std::numeric_limits<double>::digits10;
+    std::ostringstream out;
+    if (!(out << std::setprecision(sigdigits) << x))
+    {
+        throw BadConversion(std::string("to_string(double"));
+    }
+    return out.str();
 }
 
-void debug(std::string s)
+template <>
+inline std::string to_string<float>(const float &x)
 {
-	
-	std::cout << std::endl <<  "DEBUG: " << s << endl;
+    const int sigdigits = std::numeric_limits<float>::digits10;
+    std::ostringstream out;
+    out << std::setprecision(sigdigits) << x;
+    return out.str();
+}
+
+template <>
+inline std::string to_string<long double>(const long double &x)
+{
+    const int sigdigits = std::numeric_limits<long double>::digits10;
+    std::ostringstream out;
+    if (!(out << std::setprecision(sigdigits) << x))
+    {
+        throw BadConversion(std::string("to_string(float)"));
+    }
+    return out.str();
 }
 
 template <typename T>
-void debug(T t)
+inline void fromStringByRef(const std::string &s, T &x, bool failIfLeftoverChars = true)
 {
-	debug(to_string(t));
+    std::istringstream i(s);
+    char c;
+    if (!(i >> x) || (failIfLeftoverChars && i.get(c)))
+        throw BadConversion(s);
 }
 
-std::string read_file(std::string name, bool preserve_newlines = true)
+inline void fromStringByRef(const std::string &s, double &x, bool failIfLeftoverChars = true)
 {
-	std::string buf;
-	std::string line;
-	std::ifstream in("bla");
-	while(std::getline(in,line))
-	{
-		buf += line;
-		if (preserve_newlines)
-		{
-			buf += '\n';
-		}
-	}
-	return buf;
+    const int sigdigits = std::numeric_limits<double>::digits10;
+
+    std::istringstream i(s);
+    char c;
+    if (!(i >> x) || (failIfLeftoverChars && i.get(c)))
+        throw BadConversion(s);
 }
 
+/* converts from string to T returning T by value */
+template <typename T>
+inline T fromString(const std::string s)
+{
+    T x;
+    fromStringByRef(s, x);
+    return x;
 }
+
+inline void debug(std::string s)
+{
+    std::cout << std::endl
+              << "DEBUG: " << s << endl;
+}
+
+template <typename T>
+inline void debug(T t)
+{
+    debug(to_string(t));
+}
+
+inline std::string read_file(std::string name, bool preserve_newlines = true)
+{
+    std::string buf;
+    std::string line;
+    std::ifstream in("bla");
+    while (std::getline(in, line))
+    {
+        buf += line;
+        if (preserve_newlines)
+        {
+            buf += '\n';
+        }
+    }
+    return buf;
+}
+
+} // namespace Parsnip
 
 #endif

@@ -27,44 +27,46 @@ using yasper::ptr;
 
 namespace Parsnip
 {
-	template <typename Out>
-	struct ParseResult
-	{
-		typedef int IndexT;
-		
-		ParseResult() : myData(0), myCurrPos(0), myLastPos(0) {}
+template <typename Out>
+struct ParseResult
+{
+    typedef int IndexT;
 
-		ParseResult(IndexT _currPos, IndexT _lastPos ) : myData(0), myCurrPos(_currPos), myLastPos(_lastPos)
-		{ }
-		
-		ParseResult(const Out& _data, IndexT _currPos, IndexT _lastPos ) : myData(new Out(_data)), myCurrPos(_currPos), myLastPos(_lastPos)
-		{ }
+    ParseResult() : myData(0), myCurrPos(0), myLastPos(0) {}
 
-		Out& data()
-		{
-			return (*myData);
-		}
+    ParseResult(IndexT _currPos, IndexT _lastPos) : myData(0), myCurrPos(_currPos), myLastPos(_lastPos)
+    {
+    }
 
-		bool input_consumed()
-		{
-			return myCurrPos == myLastPos;
-		}
-		
-		bool parse_finished()
-		{
-			return myData && input_consumed();
-		}
+    ParseResult(const Out &_data, IndexT _currPos, IndexT _lastPos) : myData(new Out(_data)), myCurrPos(_currPos), myLastPos(_lastPos)
+    {
+    }
 
-		IndexT parse_position()
-		{
-			return myCurrPos;
-		}
+    Out &data()
+    {
+        return (*myData);
+    }
 
-	private:
-		IndexT myCurrPos;
-		IndexT myLastPos;
-		ptr<Out> myData;
-	};
-}
+    bool input_consumed()
+    {
+        return myCurrPos == myLastPos;
+    }
+
+    bool parse_finished()
+    {
+        return myData && input_consumed();
+    }
+
+    IndexT parse_position()
+    {
+        return myCurrPos;
+    }
+
+private:
+    IndexT myCurrPos;
+    IndexT myLastPos;
+    ptr<Out> myData;
+};
+} // namespace Parsnip
 
 #endif

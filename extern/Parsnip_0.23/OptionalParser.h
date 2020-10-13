@@ -30,31 +30,31 @@ namespace Parsnip
 template <typename In, typename Out>
 struct OptionalParser : public IParser<In, Out>
 {
-	OptionalParser(ptr<IParser<In, Out> > p, const Out& _default) : myParser(p), defaultVal(_default) 
-	{
-		this->setName("optional");
-	}
-	Result<Out> eval()
-	{
-		Result<Out> result = myParser->parse();
-		
-		/*
+    OptionalParser(ptr<IParser<In, Out>> p, const Out &_default) : myParser(p), defaultVal(_default)
+    {
+        this->setName("optional");
+    }
+    Result<Out> eval()
+    {
+        Result<Out> result = myParser->parse();
+
+        /*
 			if parse succeeded, return its result
 			otherwise pretend like it succeeded
 		*/
-		return result ? result :  Result<Out>::succeed(defaultVal);
-	}
-	
-	ptr<IParser<In, Out> > myParser;
-	Out defaultVal;
+        return result ? result : Result<Out>::succeed(defaultVal);
+    }
+
+    ptr<IParser<In, Out>> myParser;
+    Out defaultVal;
 };
 
-template<typename In, typename Out>
-ptr<IParser<In, Out> > optional(ptr<IParser<In, Out> > p, const Out& default_val)
+template <typename In, typename Out>
+inline ptr<IParser<In, Out>> optional(ptr<IParser<In, Out>> p, const Out &default_val)
 {
-	return new OptionalParser<In, Out>(p, default_val);
+    return new OptionalParser<In, Out>(p, default_val);
 }
 
-}
+} // namespace Parsnip
 
 #endif

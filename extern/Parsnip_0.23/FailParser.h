@@ -27,24 +27,23 @@
 namespace Parsnip
 {
 
-    template <typename In, typename Out>
-    struct FailParser : public IParser<In, Out>
-    {
-        FailParser() {}
+template <typename In, typename Out>
+struct FailParser : public IParser<In, Out>
+{
+    FailParser() {}
 
-    protected:
-        virtual Result<Out> eval()
-        {
-            return Result<Out>::fail();
-        }
-    };
-
-    template <typename In, typename Out>
-    ptr<IParser<In, Out>> fail()
+protected:
+    virtual Result<Out> eval()
     {
-        return new FailParser<In, Out>();
+        return Result<Out>::fail();
     }
+};
 
+template <typename In, typename Out>
+inline ptr<IParser<In, Out>> fail()
+{
+    return new FailParser<In, Out>();
+}
 } // namespace Parsnip
 
 #endif

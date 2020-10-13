@@ -31,229 +31,230 @@
 namespace Parsnip
 {
 
-	template <typename Input, typename TermType>
-	struct OpTableParser : public IParser<Input, TermType>
-	{
+template <typename Input, typename TermType>
+struct OpTableParser : public IParser<Input, TermType>
+{
 
-		typedef TermType (*ReduceFn) (TermType, TermType);
-		typedef TermType (*LabeledReduceFn) (const std::string&, TermType, TermType);
-		typedef unsigned OpId;	
+    typedef TermType (*ReduceFn)(TermType, TermType);
+    typedef TermType (*LabeledReduceFn)(const std::string &, TermType, TermType);
+    typedef unsigned OpId;
 
-		enum AssocType { LEFT, RIGHT };
-		enum FnType  {LABELED, UNLABELED};
+    enum AssocType
+    {
+        LEFT,
+        RIGHT
+    };
+    enum FnType
+    {
+        LABELED,
+        UNLABELED
+    };
 
-		OpTableParser(ptr< IParser<Input, TermType> > term) : term_parser(term), op_parser(0), num_ops(0) 
-		{
-			this->setName("op_table");
-		}
-		
-		
-		OpTableParser<Input, TermType>* infix_left(const std::string& op_str, unsigned precedence, ReduceFn reducer)
-		{			
-			add_op(op_str, num_ops, precedence, LEFT, UNLABELED); 			
-			reducers[num_ops] = reducer; 
+    OpTableParser(ptr<IParser<Input, TermType>> term) : term_parser(term), op_parser(0), num_ops(0)
+    {
+        this->setName("op_table");
+    }
 
-			++num_ops;
-			return this;
-		}
+    OpTableParser<Input, TermType> *infix_left(const std::string &op_str, unsigned precedence, ReduceFn reducer)
+    {
+        add_op(op_str, num_ops, precedence, LEFT, UNLABELED);
+        reducers[num_ops] = reducer;
 
-		OpTableParser<Input, TermType>* infix_left(const std::string& op_str, unsigned precedence, LabeledReduceFn reducer)
-		{			
+        ++num_ops;
+        return this;
+    }
 
-			add_op(op_str, num_ops, precedence, LEFT, LABELED); 	
-			labeled_reducers[num_ops] = reducer; 
-			++num_ops;
-			return this;
-		}
+    OpTableParser<Input, TermType> *infix_left(const std::string &op_str, unsigned precedence, LabeledReduceFn reducer)
+    {
 
+        add_op(op_str, num_ops, precedence, LEFT, LABELED);
+        labeled_reducers[num_ops] = reducer;
+        ++num_ops;
+        return this;
+    }
 
-		
-		OpTableParser<Input, TermType>* infix_right(const std::string& op_str, unsigned precedence, ReduceFn reducer)
-		{
-			add_op(op_str, num_ops, precedence, RIGHT, UNLABELED); 			
-			reducers[num_ops] = reducer; ++num_ops;
-			return this;
-		}
+    OpTableParser<Input, TermType> *infix_right(const std::string &op_str, unsigned precedence, ReduceFn reducer)
+    {
+        add_op(op_str, num_ops, precedence, RIGHT, UNLABELED);
+        reducers[num_ops] = reducer;
+        ++num_ops;
+        return this;
+    }
 
-		
-		OpTableParser<Input, TermType>* infix_right(const std::string& op_str, unsigned precedence, LabeledReduceFn reducer)
-		{
-			add_op(op_str, num_ops, precedence, RIGHT, LABELED);
-			labeled_reducers[num_ops] = reducer; 
-			++num_ops;
-			return this;
-		}
+    OpTableParser<Input, TermType> *infix_right(const std::string &op_str, unsigned precedence, LabeledReduceFn reducer)
+    {
+        add_op(op_str, num_ops, precedence, RIGHT, LABELED);
+        labeled_reducers[num_ops] = reducer;
+        ++num_ops;
+        return this;
+    }
 
+protected:
+    Result<std::string> parse_op()
+    {
 
-	protected:
-		Result<std::string> parse_op()
-		{
+        whitespace->parse();
+        Result<std::string> result = op_parser->parse();
+        whitespace->parse();
+        return result;
+    }
 
-			whitespace->parse();
-			Result<std::string> result = op_parser->parse();
-			whitespace->parse();
-			return result;
-		}
+    virtual Result<TermType> eval()
+    {
+        Result<TermType> maybe_term;
+        Result<std::string> maybe_next_op;
+        TermType term;
+        unsigned precedence;
+        AssocType assoc;
+        typename Reader<Input>::IndexT pos;
 
-		virtual Result<TermType> eval()
-		{
-			Result<TermType> maybe_term; 
-			Result<std::string> maybe_next_op;
-			TermType term;
-			unsigned precedence;
-			AssocType assoc;
-			typename Reader<Input>::IndexT pos;
+        //parse first term
+        maybe_term = term_parser->parse();
 
-			//parse first term
-			maybe_term = term_parser->parse();
+        if (!maybe_term)
+        {
+            return Result<TermType>::fail();
+        }
 
-			if (!maybe_term)
-			{
-				return Result<TermType>::fail();
-			}
-				
-			term_stack.push(maybe_term.data());
+        term_stack.push(maybe_term.data());
 
-			while (true)
-			{ 
-				pos = Reader<Input>::pos();
+        while (true)
+        {
+            pos = Reader<Input>::pos();
 
-				maybe_next_op = parse_op();
-		
-				if(!maybe_next_op) 
-				{ 
-					Reader<Input>::set_pos(pos); 
-					break;
-				}
+            maybe_next_op = parse_op();
 
-				//parse right-hand-side term				
-				maybe_term = term_parser->parse();
+            if (!maybe_next_op)
+            {
+                Reader<Input>::set_pos(pos);
+                break;
+            }
 
-				if (!maybe_term) { return Result<TermType>::fail(); }
+            //parse right-hand-side term
+            maybe_term = term_parser->parse();
 
-			
-				OpId next_op = op_ids[maybe_next_op.data()];
+            if (!maybe_term)
+            {
+                return Result<TermType>::fail();
+            }
 
-				precedence = precs[next_op];
-				assoc = assocs[next_op];
-	
-				while (!op_stack.empty() &&
-						((assoc == LEFT && precedence <= top_precedence) || 
-						 (assoc == RIGHT && precedence < top_precedence)))
-				{
-					reduce_stack();
-				}
+            OpId next_op = op_ids[maybe_next_op.data()];
 
-				term_stack.push(maybe_term.data());
+            precedence = precs[next_op];
+            assoc = assocs[next_op];
 
-				op_stack.push(next_op);
+            while (!op_stack.empty() &&
+                   ((assoc == LEFT && precedence <= top_precedence) ||
+                    (assoc == RIGHT && precedence < top_precedence)))
+            {
+                reduce_stack();
+            }
 
-				top_id = next_op;
-				top_precedence = precedence;
-				top_assoc = assoc; 
-			}
+            term_stack.push(maybe_term.data());
 
-			//if no operators were parsed, then we didn't properly parse our expressions
-			if (op_stack.size() < 1) 
-			{
-				return Result<TermType>::fail();
-			}
+            op_stack.push(next_op);
 
-			while (!op_stack.empty())
-			{
-				reduce_stack(); 
-			}
+            top_id = next_op;
+            top_precedence = precedence;
+            top_assoc = assoc;
+        }
 
-			term = term_stack.top();
-			term_stack.pop();
-			return Result<TermType>::succeed(term);
-		}
+        //if no operators were parsed, then we didn't properly parse our expressions
+        if (op_stack.size() < 1)
+        {
+            return Result<TermType>::fail();
+        }
 
-	private:
+        while (!op_stack.empty())
+        {
+            reduce_stack();
+        }
 
-		unsigned num_ops;
+        term = term_stack.top();
+        term_stack.pop();
+        return Result<TermType>::succeed(term);
+    }
 
-		ptr< IParser< Input, TermType> > term_parser;
-		ptr< IParser< std::string, std::string> > op_parser; 
+private:
+    unsigned num_ops;
 
+    ptr<IParser<Input, TermType>> term_parser;
+    ptr<IParser<std::string, std::string>> op_parser;
 
-		std::map<std::string, OpId> op_ids; 
-		std::map<OpId, std::string> op_strings; 
+    std::map<std::string, OpId> op_ids;
+    std::map<OpId, std::string> op_strings;
 
+    std::map<OpId, unsigned> precs;
+    std::map<OpId, AssocType> assocs;
+    std::map<OpId, ReduceFn> reducers;
+    std::map<OpId, LabeledReduceFn> labeled_reducers;
+    std::map<OpId, FnType> fn_type;
 
-		std::map<OpId, unsigned> precs;
-		std::map<OpId, AssocType> assocs;
-		std::map<OpId, ReduceFn> reducers;
-		std::map<OpId, LabeledReduceFn> labeled_reducers;
-		std::map<OpId, FnType> fn_type;
-		
-		std::stack<TermType> term_stack;
-		std::stack<OpId> op_stack;	
-		
-		AssocType top_assoc;
-		unsigned top_precedence;
-	
-		OpId top_id;
+    std::stack<TermType> term_stack;
+    std::stack<OpId> op_stack;
 
-		void add_op(const std::string& op_str, unsigned id, unsigned precedence, AssocType assoc, FnType fn)
-		{			
-			op_ids[op_str] = id;
-			op_strings[id] = op_str; 
+    AssocType top_assoc;
+    unsigned top_precedence;
 
-			precs[id] = precedence;
-			assocs[id] = assoc;
-			fn_type[id] = fn; 
+    OpId top_id;
 
-			if (op_parser)
-			{
-				op_parser = longer(op_parser,  str(op_str)); 
-			}
-			else
-			{
-				op_parser = str(op_str);
-			}
-		}
+    void add_op(const std::string &op_str, unsigned id, unsigned precedence, AssocType assoc, FnType fn)
+    {
+        op_ids[op_str] = id;
+        op_strings[id] = op_str;
 
-		void reduce_stack()
-		{
-			TermType term = term_stack.top();
-			term_stack.pop();
-			
-			if (fn_type[top_id] == LABELED)
-			{
-				term = labeled_reducers[top_id](op_strings[top_id], term_stack.top(),  term);
-			}
-			else
-			{
-				term = reducers[top_id]( term_stack.top(),  term );
-			}
+        precs[id] = precedence;
+        assocs[id] = assoc;
+        fn_type[id] = fn;
 
-			term_stack.pop();
-			term_stack.push(term);
+        if (op_parser)
+        {
+            op_parser = longer(op_parser, str(op_str));
+        }
+        else
+        {
+            op_parser = str(op_str);
+        }
+    }
 
-			pop_op();
-		}
+    void reduce_stack()
+    {
+        TermType term = term_stack.top();
+        term_stack.pop();
 
-		void pop_op()
-		{
-			op_stack.pop();
+        if (fn_type[top_id] == LABELED)
+        {
+            term = labeled_reducers[top_id](op_strings[top_id], term_stack.top(), term);
+        }
+        else
+        {
+            term = reducers[top_id](term_stack.top(), term);
+        }
 
-			if (!op_stack.empty())
-			{
-				top_id = op_stack.top();
-				top_precedence = precs[top_id];
-				top_assoc = assocs[top_id];
-			}
-		}
-	};
+        term_stack.pop();
+        term_stack.push(term);
 
-	
-	template <typename TermType>
-	OpTableParser<std::string, TermType>* op_table
-			(ptr<IParser<std::string, TermType> > term_parser)
-	{
-		return new OpTableParser<std::string, TermType> (term_parser);
-	}
+        pop_op();
+    }
+
+    void pop_op()
+    {
+        op_stack.pop();
+
+        if (!op_stack.empty())
+        {
+            top_id = op_stack.top();
+            top_precedence = precs[top_id];
+            top_assoc = assocs[top_id];
+        }
+    }
+};
+
+template <typename TermType>
+inline OpTableParser<std::string, TermType> *op_table(ptr<IParser<std::string, TermType>> term_parser)
+{
+    return new OpTableParser<std::string, TermType>(term_parser);
 }
+} // namespace Parsnip
 
 #endif

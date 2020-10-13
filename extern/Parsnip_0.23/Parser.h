@@ -22,173 +22,171 @@
 #ifndef PARSNIP_PARSER_H
 #define PARSNIP_PARSER_H
 
-#include "ParsnipConfig.h"
-#include "ParsnipBase.h"
 #include "Accumulators.h"
+#include "Cache.h"
+#include "ParsnipBase.h"
+#include "ParsnipConfig.h"
 #include "Reducers.h"
 #include "Result.h"
-#include "Cache.h"
 
-#include "Reader.h"
 #include "ParsnipDebug.h"
+#include "Reader.h"
 
 namespace Parsnip
 {
 template <typename In, typename Out>
 struct IParser
-{	
-	typedef  typename Reader<In>::IndexT PosT;
-	typedef std::pair< Result<Out>, PosT> ResultPosPair;
-	typedef Cache<In, Out, PosT, ResultPosPair > CacheT;
-	typedef Maybe< ResultPosPair > MaybeValue; 
+{
+    typedef typename Reader<In>::IndexT PosT;
+    typedef std::pair<Result<Out>, PosT> ResultPosPair;
+    typedef Cache<In, Out, PosT, ResultPosPair> CacheT;
+    typedef Maybe<ResultPosPair> MaybeValue;
 
-	virtual Result<Out> parse()
-	{
-		bool debug = trace || ParsnipConfig::traceAll;
-		
-		if (debug) 
-		{
-			typename Reader<In>::IndexT pos = Reader<In>::pos();
+    virtual Result<Out> parse()
+    {
+        bool debug = trace || ParsnipConfig::traceAll;
 
-			ParsnipDebug::output_indent();
+        if (debug)
+        {
+            typename Reader<In>::IndexT pos = Reader<In>::pos();
 
-			std::cout << "(" << ParsnipDebug::indent << ") " << "Entering " <<  this->getName() << " at pos " << pos << " ";
+            ParsnipDebug::output_indent();
 
-			if (!Reader<In>::hasNext())
-			{
-				std::cout << "on end of stream ";
-			}
-			else if (pos >= 0)
-			{
-				std::cout << "on '" << Reader<In>::curr() <<  + "' ";
-			}
+            std::cout << "(" << ParsnipDebug::indent << ") "
+                      << "Entering " << this->getName() << " at pos " << pos << " ";
 
-			std::cout << std::endl;
-			ParsnipDebug::increment_indent();
-		}
+            if (!Reader<In>::hasNext())
+            {
+                std::cout << "on end of stream ";
+            }
+            else if (pos >= 0)
+            {
+                std::cout << "on '" << Reader<In>::curr() << +"' ";
+            }
 
-		Result<Out> result; 
+            std::cout << std::endl;
+            ParsnipDebug::increment_indent();
+        }
 
-		switch(ParsnipConfig::strategy)
-		{
-		case (SIMPLE):
-			result =  this->eval();
-			break;
+        Result<Out> result;
 
-		case (PACKRAT):
-			result = parse_packrat();
-			break;
-		}
-		
-		if (debug)
-		{
-			ParsnipDebug::decrement_indent();
-		
-			PosT pos = Reader<In>::pos();
+        switch (ParsnipConfig::strategy)
+        {
+        case (SIMPLE):
+            result = this->eval();
+            break;
 
-			ParsnipDebug::output_indent();
+        case (PACKRAT):
+            result = parse_packrat();
+            break;
+        }
 
-			std::cout << "(" << ParsnipDebug::indent << ") " <<  "Exiting " << this->getName() << " at pos " << pos << " ";
+        if (debug)
+        {
+            ParsnipDebug::decrement_indent();
 
-			
-			if (!Reader<In>::hasNext())
-			{
-				std::cout << "on end of stream ";
-			}
-			else if (pos >= 0)
-			{
-				std::cout << "on '" <<Reader<In>::curr() <<  + "' ";
-			}
+            PosT pos = Reader<In>::pos();
 
-			if (result)
-			{	
-				std::cout << "OK "; 
-			}
-			else
-			{	
-				std::cout << "FAIL ";
-			}
+            ParsnipDebug::output_indent();
 
-			std::cout << std::endl;			
-		}
+            std::cout << "(" << ParsnipDebug::indent << ") "
+                      << "Exiting " << this->getName() << " at pos " << pos << " ";
 
-		return result;
-	}
+            if (!Reader<In>::hasNext())
+            {
+                std::cout << "on end of stream ";
+            }
+            else if (pos >= 0)
+            {
+                std::cout << "on '" << Reader<In>::curr() << +"' ";
+            }
 
-	Result<Out> parse_packrat()
-	{
-		PosT P = Reader<In>::pos();
-		
-		//see if there is a memo for this parser at the current position
-		MaybeValue saved = cache.get(this, P);
-		
-		//if already memoized, return the memo
-		if (saved) 
-		{
-			ResultPosPair rp = saved.get();
-			Reader<In>::set_pos(rp.second);	
-			return rp.first; 
-		}
+            if (result)
+            {
+                std::cout << "OK ";
+            }
+            else
+            {
+                std::cout << "FAIL ";
+            }
 
-		//if not memoized do the parse
-		Result<Out> ans = this->eval();
-		
-		//how far did we get?
-		PosT newPos = Reader<In>::pos();
+            std::cout << std::endl;
+        }
 
-		//...and memoize it!
-		cache.insert(this, P, std::make_pair(ans, newPos));
+        return result;
+    }
 
-		return ans;
-	}
+    Result<Out> parse_packrat()
+    {
+        PosT P = Reader<In>::pos();
 
+        //see if there is a memo for this parser at the current position
+        MaybeValue saved = cache.get(this, P);
 
-	IParser() : trace(false)
-	{
-		this->setName(to_string(this));
-	}
+        //if already memoized, return the memo
+        if (saved)
+        {
+            ResultPosPair rp = saved.get();
+            Reader<In>::set_pos(rp.second);
+            return rp.first;
+        }
 
-	virtual ~IParser() 
-	{
-		cache.removeParser(this);
-	}
-	
+        //if not memoized do the parse
+        Result<Out> ans = this->eval();
 
-	virtual std::string getName()
-	{
-		return myName;
-	}
+        //how far did we get?
+        PosT newPos = Reader<In>::pos();
 
-	virtual void setName(const std::string& str)
-	{
-		myName = str;
-	}
+        //...and memoize it!
+        cache.insert(this, P, std::make_pair(ans, newPos));
 
-	virtual std::string toString(unsigned depth = 0)
-	{
-		std::string str;
-		for (unsigned i =0; i < depth; ++i)
-		{
-			str += "\t";
-		}
-		str += getName();
-		str += "\n";
-		return str;
-	}
+        return ans;
+    }
 
-	void setTrace(bool b) 
-	{
-		trace = b;
-	}
+    IParser() : trace(false)
+    {
+        this->setName(to_string(this));
+    }
+
+    virtual ~IParser()
+    {
+        cache.removeParser(this);
+    }
+
+    virtual std::string getName()
+    {
+        return myName;
+    }
+
+    virtual void setName(const std::string &str)
+    {
+        myName = str;
+    }
+
+    virtual std::string toString(unsigned depth = 0)
+    {
+        std::string str;
+        for (unsigned i = 0; i < depth; ++i)
+        {
+            str += "\t";
+        }
+        str += getName();
+        str += "\n";
+        return str;
+    }
+
+    void setTrace(bool b)
+    {
+        trace = b;
+    }
 
 protected:
-	virtual Result<Out> eval() =0;
-
+    virtual Result<Out> eval() = 0;
 
 private:
-	static CacheT cache;
-	std::string myName;
-	bool trace;
+    static CacheT cache;
+    std::string myName;
+    bool trace;
 };
 
 template <typename In, typename Out>
@@ -202,24 +200,22 @@ typename IParser<In, Out>::CacheT IParser<In, Out>::cache;
 template <typename In, typename Out>
 struct Parser
 {
-	typedef ptr< IParser< In, Out > > type;
+    typedef ptr<IParser<In, Out>> type;
 };
 
-
-template<typename In, typename Out>
-ptr< IParser<In, Out> > operator >>= (const std::string& name, ptr< IParser<In, Out> > p)
+template <typename In, typename Out>inline 
+ptr<IParser<In, Out>> operator>>=(const std::string &name, ptr<IParser<In, Out>> p)
 {
-	p->setName(name);
-	return p;
+    p->setName(name);
+    return p;
 }
 
-template<typename In, typename Out>
-ptr< IParser<In, Out> > operator >>= (ptr< IParser<In, Out> > p, const std::string& name)
+template <typename In, typename Out>inline 
+ptr<IParser<In, Out>> operator>>=(ptr<IParser<In, Out>> p, const std::string &name)
 {
-	p->setName(name);
-	return p;
+    p->setName(name);
+    return p;
 }
-
 
 /*
 template <typename In, typename Out>
@@ -292,7 +288,6 @@ ptr<IParser<In, Out> > atleastTill(ptr<IParser<In, Out> > a, ptr<IParser<In, Out
 
 */
 
-
-}
+} // namespace Parsnip
 
 #endif

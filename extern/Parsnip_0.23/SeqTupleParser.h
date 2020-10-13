@@ -31,46 +31,46 @@ namespace Parsnip
 	sequence of two non-tuples yields a 2-tuple
 */
 
-template <typename In, typename  Out1, typename Out2>
-struct Seq1_1Parser : public IParser<In, Tuple2<Out1,Out2> >
-{	
-	Seq1_1Parser( ptr<IParser<In, Out1 > > a, ptr<IParser<In, Out2> > b ) : first(a), second(b) 
-	{
-		this->setName("seq");
-	}
-	
+template <typename In, typename Out1, typename Out2>
+struct Seq1_1Parser : public IParser<In, Tuple2<Out1, Out2>>
+{
+    Seq1_1Parser(ptr<IParser<In, Out1>> a, ptr<IParser<In, Out2>> b) : first(a), second(b)
+    {
+        this->setName("seq");
+    }
+
 protected:
-	virtual Result< Tuple2<Out1, Out2> > eval()
-	{
+    virtual Result<Tuple2<Out1, Out2>> eval()
+    {
 
-		Result<Out1> result1 = first->parse();
+        Result<Out1> result1 = first->parse();
 
-		//unsigned lastPos = Reader<In>::pos();
-		
-		if(result1)
-		{ 
-			Result<Out2> result2 = second->parse();
-		
-			if (result2) 
-			{
-				Tuple2<Out1, Out2> tuple;
-				tuple.first = result1.data();
-				tuple.second = result2.data();
+        //unsigned lastPos = Reader<In>::pos();
 
-				return Result<Tuple2<Out1, Out2> >::succeed(tuple);
-			}
-			else
-			{
-				return Result<Tuple2<Out1, Out2> >::fail();
-			}
-		}
-		//if we fail to parse...do we restore the position?
-		
-		return Result<Tuple2<Out1, Out2> >::fail();
-	}
-	
-	ptr<IParser<In, Out1> > first;
-	ptr<IParser<In, Out2> > second;
+        if (result1)
+        {
+            Result<Out2> result2 = second->parse();
+
+            if (result2)
+            {
+                Tuple2<Out1, Out2> tuple;
+                tuple.first = result1.data();
+                tuple.second = result2.data();
+
+                return Result<Tuple2<Out1, Out2>>::succeed(tuple);
+            }
+            else
+            {
+                return Result<Tuple2<Out1, Out2>>::fail();
+            }
+        }
+        //if we fail to parse...do we restore the position?
+
+        return Result<Tuple2<Out1, Out2>>::fail();
+    }
+
+    ptr<IParser<In, Out1>> first;
+    ptr<IParser<In, Out2>> second;
 };
 
 /*
@@ -78,80 +78,78 @@ protected:
 */
 
 template <typename In, typename Out1, typename Out2, typename Out3>
-struct Seq2_1Parser : public IParser<In, Tuple3<Out1,Out2,Out3> >
-{	
-	Seq2_1Parser( ptr<IParser<In, Tuple2<Out1, Out2> > > a, ptr< IParser<In, Out3> > b ) : first(a), second(b) 
-	{
-		this->setName("seq");
-	}
-	
-protected:
-	virtual Result<Tuple3<Out1, Out2, Out3> > eval()
-	{
-		Result<Tuple2<Out1, Out2> > result1 = first->parse();
-		if(result1)
-		{ 
-			Result<Out3> result2 = second->parse();
-		
-			if (result2) 
-			{
-				Tuple3<Out1, Out2, Out3> tuple(result1.data().first, result1.data().second, result2.data());
-	
-				return Result<Tuple3<Out1, Out2, Out3> >::succeed(tuple);
-			}
-			else
-			{
-				return Result< Tuple3<Out1, Out2, Out3> >::fail();
-			}
-		}
-		return Result<Tuple3<Out1, Out2, Out3> >::fail();	
-	}
-	
-	ptr<IParser<In, Tuple2<Out1, Out2> > > first;
-	ptr< IParser<In, Out3> >  second;
-};
+struct Seq2_1Parser : public IParser<In, Tuple3<Out1, Out2, Out3>>
+{
+    Seq2_1Parser(ptr<IParser<In, Tuple2<Out1, Out2>>> a, ptr<IParser<In, Out3>> b) : first(a), second(b)
+    {
+        this->setName("seq");
+    }
 
+protected:
+    virtual Result<Tuple3<Out1, Out2, Out3>> eval()
+    {
+        Result<Tuple2<Out1, Out2>> result1 = first->parse();
+        if (result1)
+        {
+            Result<Out3> result2 = second->parse();
+
+            if (result2)
+            {
+                Tuple3<Out1, Out2, Out3> tuple(result1.data().first, result1.data().second, result2.data());
+
+                return Result<Tuple3<Out1, Out2, Out3>>::succeed(tuple);
+            }
+            else
+            {
+                return Result<Tuple3<Out1, Out2, Out3>>::fail();
+            }
+        }
+        return Result<Tuple3<Out1, Out2, Out3>>::fail();
+    }
+
+    ptr<IParser<In, Tuple2<Out1, Out2>>> first;
+    ptr<IParser<In, Out3>> second;
+};
 
 /*
 	sequence of non-tuple and 2-tuple yields a 3-tuple
 */
 
 template <typename In, typename Out1, typename Out2, typename Out3>
-struct Seq1_2Parser : public IParser<In, Tuple3<Out1,Out2,Out3> >
-{	
-	Seq1_2Parser( ptr<IParser<In, Out1> > a, ptr<IParser<In, Tuple2<Out2, Out3> > > b ) : first(a), second(b) 
-	{
-		this->setName("seq");
-	}
-	
-protected:
-	virtual Result<Tuple3<Out1, Out2, Out3> > eval()
-	{
-		Result<Out1> result1 = first->parse();
-		if(result1)
-		{ 
-			Result< Tuple2<Out2, Out3> > result2 = second->parse();
-		
-			if (result2) 
-			{
-				Tuple3<Out1, Out2, Out3> tuple(result1.data(), result2.data().first, result2.data().second);
-	
-				return Result< Tuple3<Out1, Out2, Out3> >::succeed(tuple);
-			}
-			else
-			{	
-				return Result< Tuple3<Out1, Out2, Out3> >::fail();
-			}
-		}
+struct Seq1_2Parser : public IParser<In, Tuple3<Out1, Out2, Out3>>
+{
+    Seq1_2Parser(ptr<IParser<In, Out1>> a, ptr<IParser<In, Tuple2<Out2, Out3>>> b) : first(a), second(b)
+    {
+        this->setName("seq");
+    }
 
-		return Result< Tuple3<Out1, Out2, Out3> >::fail();
-		
-	}
-	
-	ptr< IParser<In, Out1> > first;
-	ptr<IParser<In, Tuple2<Out2, Out3> > > second;
+protected:
+    virtual Result<Tuple3<Out1, Out2, Out3>> eval()
+    {
+        Result<Out1> result1 = first->parse();
+        if (result1)
+        {
+            Result<Tuple2<Out2, Out3>> result2 = second->parse();
+
+            if (result2)
+            {
+                Tuple3<Out1, Out2, Out3> tuple(result1.data(), result2.data().first, result2.data().second);
+
+                return Result<Tuple3<Out1, Out2, Out3>>::succeed(tuple);
+            }
+            else
+            {
+                return Result<Tuple3<Out1, Out2, Out3>>::fail();
+            }
+        }
+
+        return Result<Tuple3<Out1, Out2, Out3>>::fail();
+    }
+
+    ptr<IParser<In, Out1>> first;
+    ptr<IParser<In, Tuple2<Out2, Out3>>> second;
 };
 
-}
+} // namespace Parsnip
 
 #endif

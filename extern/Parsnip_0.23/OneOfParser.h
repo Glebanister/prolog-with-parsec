@@ -32,45 +32,45 @@ namespace Parsnip
 
 struct OneOfParser : public IParser<string, string>
 {
-	OneOfParser(const std::string& _str) : str(_str) {}
+    OneOfParser(const std::string &_str) : str(_str) {}
 
 protected:
-	virtual Result<string> eval()
-	{
-		if (Reader<string>::hasNext())
-		{
-			Reader<string>::IndexT lastPos = Reader<string>::pos();
-			
-			char currChar = Reader<string>::get();
-			
-			for (string::size_type i = 0; i < str.length(); ++i)
-			{
-				std::string val;
-				if (str[i] == currChar)
-				{
-					val += currChar;
-					return Result<string>::succeed(val);
-				}
-			}
-			
-			//token-level parsers mustn't advance the cursor past where they succeed
-			Reader<string>::set_pos(lastPos);
-		}
-		
-		return Result<string>::fail();
-	}
-	
-private:
-	string str;
+    virtual Result<string> eval()
+    {
+        if (Reader<string>::hasNext())
+        {
+            Reader<string>::IndexT lastPos = Reader<string>::pos();
 
-	OneOfParser();
+            char currChar = Reader<string>::get();
+
+            for (string::size_type i = 0; i < str.length(); ++i)
+            {
+                std::string val;
+                if (str[i] == currChar)
+                {
+                    val += currChar;
+                    return Result<string>::succeed(val);
+                }
+            }
+
+            //token-level parsers mustn't advance the cursor past where they succeed
+            Reader<string>::set_pos(lastPos);
+        }
+
+        return Result<string>::fail();
+    }
+
+private:
+    string str;
+
+    OneOfParser();
 };
 
-ptr<IParser<string, string> > oneOf(const std::string& str)
+inline ptr<IParser<string, string>> oneOf(const std::string &str)
 {
-	return new OneOfParser(str);
+    return new OneOfParser(str);
 }
 
-}
+} // namespace Parsnip
 
 #endif

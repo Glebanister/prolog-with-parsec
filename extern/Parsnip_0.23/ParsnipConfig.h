@@ -25,15 +25,19 @@
 namespace Parsnip
 {
 
-enum ParseStrategy { SIMPLE, PACKRAT };
+enum ParseStrategy
+{
+    SIMPLE,
+    PACKRAT
+};
 
 struct ParsnipConfig
 {
-	static ParseStrategy strategy;
-	static bool traceAll;
+    static ParseStrategy strategy;
+    static bool traceAll;
 };
 
 ParseStrategy ParsnipConfig::strategy = PACKRAT;
 bool ParsnipConfig::traceAll = false;
-}
+} // namespace Parsnip
 #endif

@@ -31,73 +31,71 @@ namespace Parsnip
 	sequence when first parser is void 
 */
 
-template <typename  In, typename Out>
+template <typename In, typename Out>
 struct SeqUseSecondParser : public IParser<In, Out>
 {
-	SeqUseSecondParser( ptr<IParser<In, void> > a, ptr<IParser<In, Out> > b ) : first(a), second(b) 
-	{
-		this->setName("seq");
-	}
+    SeqUseSecondParser(ptr<IParser<In, void>> a, ptr<IParser<In, Out>> b) : first(a), second(b)
+    {
+        this->setName("seq");
+    }
 
 protected:
-	virtual Result<Out> eval()
-	{
-		Result<void> result1 = first->parse();
+    virtual Result<Out> eval()
+    {
+        Result<void> result1 = first->parse();
 
-		if(result1)
-		{ 
-			Result<Out> result2 = second->parse();
-		
-			if (result2) 
-			{
-				return Result<Out>::succeed(result2.data());
-			}
+        if (result1)
+        {
+            Result<Out> result2 = second->parse();
 
-			return Result<Out>::fail();
-		}
+            if (result2)
+            {
+                return Result<Out>::succeed(result2.data());
+            }
 
-		return Result<Out>::fail();
-	}
-	
-	ptr<IParser<In, void> > first;
-	ptr<IParser<In, Out> > second;
+            return Result<Out>::fail();
+        }
+
+        return Result<Out>::fail();
+    }
+
+    ptr<IParser<In, void>> first;
+    ptr<IParser<In, Out>> second;
 };
-
 
 /* 
 	sequence when second parser is void 
 */
 
-template <typename  In, typename Out>
-struct SeqUseFirstParser : public IParser<In,  Out>
+template <typename In, typename Out>
+struct SeqUseFirstParser : public IParser<In, Out>
 {
-	SeqUseFirstParser( ptr<IParser<In, Out> > a, ptr<IParser<In, void> > b ) : first(a), second(b) 
-	{
-		this->setName("seq");
-	}
-	
-	virtual Result<Out> eval()
-	{
-		Result<Out> result1 = first->parse();
+    SeqUseFirstParser(ptr<IParser<In, Out>> a, ptr<IParser<In, void>> b) : first(a), second(b)
+    {
+        this->setName("seq");
+    }
 
-		if(result1)
-		{ 
-			Result<void> result2 = second->parse();
-		
-			if (result2) 
-			{
-				return Result<Out>::succeed(result1.data());
-			}
-			return Result<Out>::fail();
-		}
-		return Result<Out>::fail();
+    virtual Result<Out> eval()
+    {
+        Result<Out> result1 = first->parse();
 
-	}
-	
-	ptr<IParser<In, Out> > first;
-	ptr<IParser<In, void> > second;
+        if (result1)
+        {
+            Result<void> result2 = second->parse();
+
+            if (result2)
+            {
+                return Result<Out>::succeed(result1.data());
+            }
+            return Result<Out>::fail();
+        }
+        return Result<Out>::fail();
+    }
+
+    ptr<IParser<In, Out>> first;
+    ptr<IParser<In, void>> second;
 };
 
-}
+} // namespace Parsnip
 
 #endif

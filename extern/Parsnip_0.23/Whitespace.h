@@ -23,31 +23,29 @@
 #define PARSNIP_WHITESPACE_H
 
 #include "CharParser.h"
-#include "ManyParser.h"
 #include "ChoiceParser.h"
+#include "ManyParser.h"
 #include "SkipParser.h"
 namespace Parsnip
-{	
-	
-	const Parser<string, string>::type space = ch(' ');
-	const Parser<string, string>::type tab = ch('\t');
-	const Parser<string, string>::type newline = ch('\n');
+{
 
+const Parser<string, string>::type space = ch(' ');
+const Parser<string, string>::type tab = ch('\t');
+const Parser<string, string>::type newline = ch('\n');
 
-	const Parser<string, string>::type spaces = many(space);
-	const Parser<string, string>::type tabs = many(tab);
-	const Parser<string, string>::type newlines = many(newline);
+const Parser<string, string>::type spaces = many(space);
+const Parser<string, string>::type tabs = many(tab);
+const Parser<string, string>::type newlines = many(newline);
 
-	/*
+/*
 		whitespace is mutable!
 	*/
-	Parser<string, string>::type whitespace = many(space | tab | newline);
-	
+Parser<string, string>::type whitespace = many(space | tab | newline);
 
-	void set_whitespace(ptr< IParser<string, string> > parser)
-	{
-		whitespace = parser;
-	}
+inline void set_whitespace(ptr<IParser<string, string>> parser)
+{
+    whitespace = parser;
 }
+} // namespace Parsnip
 
 #endif
