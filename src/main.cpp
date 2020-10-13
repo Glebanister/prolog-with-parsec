@@ -84,6 +84,9 @@ PrologObjectPtr makeIdentifier(std::string name)
 OBJECT_FROM_STRING_MAKER(Identifier);
 OBJECT_MAKER(Disj);
 OBJECT_MAKER(Conj);
+OBJECT_MAKER(Decl);
+OBJECT_MAKER(Atom);
+OBJECT_MAKER(AtomSeq);
 
 int main(int argc, const char **argv)
 {
@@ -97,56 +100,82 @@ int main(int argc, const char **argv)
         auto str_tok = [](std::string s) { return token(skip_str(std::move(s))); };
 
         // Tokens
-        PrologObjectParser identTok = token(call1(makeFromStringIdentifier, (letter | ch('_')) + optional(many1(letter | digit | ch('_')))));
+        PrologObjectParser identifier = token(call1(makeFromStringIdentifier, (letter | ch('_')) + optional(many1(letter | digit | ch('_')))));
         auto opn = ch_tok('('),
              cls = ch_tok(')'),
              corkscrew = str_tok(":-"),
              period = ch_tok('.');
 
-        PrologObjectParser expression = undefined(),
-                           expressionTerm = undefined(),
-                           expressionOperation = undefined(),
-                           _operators = undefined();
+        // Global parsers
+        PrologObjectParser
+            expression = undefined(),
+            declaration = undefined(),
+            atom = undefined();
 
-        _operators = op_table(expressionTerm)
-                         ->infix_right(";", 10, makeDisj<obj, obj>)
-                         ->infix_right(",", 20, makeConj<obj, obj>);
+        {
+            // Expression parsers
+            PrologObjectParser
+                expressionTerm = undefined(),
+                expressionOperation = undefined(),
+                _operators = undefined();
 
-        setLazy(expressionTerm, identTok | opn >> expressionOperation >> cls | opn >> expressionTerm >> cls);
-        setLazy(expressionOperation, _operators);
-        setLazy(expression, expressionOperation | expressionTerm);
+            _operators = op_table(expressionTerm)
+                             ->infix_right(";", 10, makeDisj<obj, obj>)
+                             ->infix_right(",", 20, makeConj<obj, obj>);
+
+            setLazy(expressionTerm, atom | opn >> expressionOperation >> cls | opn >> expressionTerm >> cls);
+            setLazy(expressionOperation, _operators);
+            setLazy(expression, expressionOperation | expressionTerm);
+        }
+        {
+            // Declaration parser
+            setLazy(declaration, call2(makeDecl<obj, obj>, atom >> corkscrew >> expression >> period) |
+                                     call1(makeDecl<obj>, atom >> period));
+        }
+        {
+            // Atom parsers
+            PrologObjectParser
+                atomSeq = undefined(),
+                atomBrackets = undefined();
+
+            setLazy(atom, call2(makeAtom<obj, obj>, identifier >> atomSeq));
+            setLazy(atomSeq, call2(makeAtomSeq<obj, obj>, opn >> atomBrackets >> cls >> atomSeq) |
+                                 optional<string, obj>(atom, new PrologObject("", "Atom")));
+            setLazy(atomBrackets, opn >> atomBrackets >> cls | atom);
+        }
 
         std::vector<string>
             tests = {
-                // "a:-b.",
-                // "a.",
-                // "a :- x.",
-                // "a :- (x).",
-                // "a :- x, y, z.",
-                // "a :- x, y; z.",
-                // "a :- x, (y; z).",
-                // "other_name :- x, ((y; z)).",
-                // "other_name :- x, (y; (a, b, c, d, e; f) ,z).",
-                // "x :- x, (y; (a, b, c, d, (e); f) ,z).",
-                // "x :- x, (y; (a, b, c, d, (e); f) ,z), a ; d.",
-                // "x :- x, (y; (a, b, c, d, (e); f) ,z), a ; d.",
-                // "x :- x, (y; (a, b, c d, (e); f) ,z).",
-                // "((a))",
-                // "a; (b)",
-                "((ab))",
-                "((ab)) , a;bc, ((d))",
-                // "a   ; b",
-                // "a, b ; d, d",
+                "a:-b.",
+                "a.",
+                "a :- x.",
+                "a :- (x).",
+                "a :- x, y, z.",
+                "a :- x, y; z.",
+                "a :- x, (y; z).",
+                "other_name :- x, ((y; z)).",
+                "other_name :- x, (y; (a, b, c, d, e; f) ,z).",
+                "x :- x, (y; (a, b, c, d, (e); f) ,z).",
+                "x :- x, (y; (a, b, c, d, (e); f) ,z), a ; d.",
+                "x :- x, (y; (a, b, c, d, (e); f) ,z), a ; d.",
+                "x :- x, (y; (a, b, c d, (e); f) ,z).",
+                "a :- a a a a a.",
+                "a :- a a a a a, a a a; a a a, a.",
+                "a (((a))) :- (((a))), a.",
+                "a (a) a ((a)) :- a, a, a (a).",
+                "a :- (a).",
+                "a :- (a), (b), (c).",
             };
         for (auto test : tests)
         {
-            auto result = parse(test, expression);
+            auto result = parse(test, declaration);
             if (result.parse_finished())
             {
                 std::cout << "Success: " << *result.data() << std::endl;
                 continue;
             }
             std::cout << test << ' ';
+            
             if (result.input_consumed())
             {
                 std::cout << "Error: "
