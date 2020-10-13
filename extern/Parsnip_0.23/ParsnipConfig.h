@@ -37,7 +37,7 @@ struct ParsnipConfig
     static bool traceAll;
 };
 
-ParseStrategy ParsnipConfig::strategy = PACKRAT;
-bool ParsnipConfig::traceAll = false;
+inline ParseStrategy ParsnipConfig::strategy = PACKRAT;
+inline bool ParsnipConfig::traceAll = false;
 } // namespace Parsnip
 #endif

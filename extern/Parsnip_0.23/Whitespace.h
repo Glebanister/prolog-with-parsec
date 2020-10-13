@@ -40,7 +40,7 @@ const Parser<string, string>::type newlines = many(newline);
 /*
 		whitespace is mutable!
 	*/
-Parser<string, string>::type whitespace = many(space | tab | newline);
+inline Parser<string, string>::type whitespace = many(space | tab | newline);
 
 inline void set_whitespace(ptr<IParser<string, string>> parser)
 {

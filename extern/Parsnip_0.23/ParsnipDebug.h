@@ -50,7 +50,7 @@ struct ParsnipDebug
     }
 };
 
-unsigned ParsnipDebug::indent;
+inline unsigned ParsnipDebug::indent;
 
 } // namespace Parsnip
 
