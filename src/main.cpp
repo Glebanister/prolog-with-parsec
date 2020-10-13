@@ -16,53 +16,41 @@ struct PrologObject
     std::vector<ptr<PrologObject>> objects;
 };
 
-std::ostream &operator<<(std::ostream &os, const PrologObject &object)
-{
-    std::string code = "";
-    if (!object.code.empty())
-    {
-        code = "'" + object.code + "'";
-    }
-    os << object.type << ' ' << code;
-    if (object.objects.empty())
-    {
-        os << ' ';
-        return os;
-    }
-    os << "(";
-    std::for_each(object.objects.begin(), object.objects.end(), [&](const auto &obj) { os << *obj; });
-    os << ") ";
-    return os;
-}
-
 using PrologObjectPtr = ptr<PrologObject>;
 
-struct AccumulatePrologObject : public Accumulator<PrologObjectPtr, PrologObjectPtr>
+struct PrologObjectPrinter
 {
-    AccumulatePrologObject(std::string code, std::string type)
+    PrologObjectPrinter(std::size_t indentationLevel,
+                        std::string indentationHorizontal,
+                        std::string indentationVertical,
+                        PrologObjectPtr obj)
+        : indentLevel(indentationLevel),
+          indentationHorizontal(std::move(indentationHorizontal)),
+          indentationVertical(std::move(indentationVertical)),
+          object(obj)
     {
-        object = new PrologObject(code);
-        object->code = std::move(code);
-        object->type = std::move(type);
     }
 
-    void accum(const PrologObjectPtr &obj)
-    {
-        object->objects.push_back(obj);
-    }
-
-    PrologObjectPtr result()
-    {
-        return object;
-    }
-
-private:
+    std::size_t indentLevel = 0;
+    std::string indentationHorizontal;
+    std::string indentationVertical;
     PrologObjectPtr object;
 };
 
-PrologObjectPtr makeIdentifier(std::string name)
+std::ostream &operator<<(std::ostream &os, const PrologObjectPrinter &printer)
 {
-    return new PrologObject(name, "Identifier");
+    for (std::size_t i = 0; i < printer.indentLevel; ++i)
+    {
+        os << printer.indentationHorizontal;
+    }
+    os << printer.indentationVertical;
+    os << printer.object->type << (printer.object->code.empty() ? "" : (": '" + printer.object->code + "'"));
+    os << std::endl;
+    for (const auto subobj : printer.object->objects)
+    {
+        os << PrologObjectPrinter(printer.indentLevel + 1, printer.indentationHorizontal, printer.indentationVertical, subobj);
+    }
+    return os;
 }
 
 #define OBJECT_MAKER(name)                      \
@@ -129,8 +117,10 @@ int main(int argc, const char **argv)
         }
         {
             // Declaration parser
-            setLazy(declaration, call2(makeDecl<obj, obj>, atom >> corkscrew >> expression >> period) |
-                                     call1(makeDecl<obj>, atom >> period));
+            setLazy(declaration, 
+                                 call1(makeDecl<obj>, atom >> period) |
+                                 call2(makeDecl<obj, obj>, atom >> corkscrew >> expression >> period)
+                                 );
         }
         {
             // Atom parsers
@@ -140,7 +130,7 @@ int main(int argc, const char **argv)
 
             setLazy(atom, call2(makeAtom<obj, obj>, identifier >> atomSeq));
             setLazy(atomSeq, call2(makeAtomSeq<obj, obj>, opn >> atomBrackets >> cls >> atomSeq) |
-                                 optional<string, obj>(atom, new PrologObject("", "Atom")));
+                                 optional<string, obj>(atom, makeAtom<>()));
             setLazy(atomBrackets, opn >> atomBrackets >> cls | atom);
         }
 
@@ -171,11 +161,12 @@ int main(int argc, const char **argv)
             auto result = parse(test, declaration);
             if (result.parse_finished())
             {
-                std::cout << "Success: " << *result.data() << std::endl;
+                std::cout << test << std::endl
+                          << PrologObjectPrinter(0, "│  ", "├─ ", result.data()) << std::endl;
                 continue;
             }
             std::cout << test << ' ';
-            
+
             if (result.input_consumed())
             {
                 std::cout << "Error: "
@@ -188,50 +179,4 @@ int main(int argc, const char **argv)
             }
         }
     }
-
-    // using NumParser = Parser<string, double>::type;
-
-    // // prolog::PrologCheckerArgumentParser args(argc, argv);
-
-    // NumParser exprOper = lazy<string, double>();
-    // NumParser term = lazy<string, double>();
-    // setLazy(term, real | skip_ch('(') >> exprOper >> skip_ch(')') | skip_ch('(') >> term >> skip_ch(')'));
-    // NumParser ops = op_table(term)
-    //                     ->infix_left("+", 10, [](double a, double b) { return a + b; })
-    //                     ->infix_left("*", 20, [](double a, double b) { return a * b; });
-
-    // setLazy(exprOper, ops);
-
-    // NumParser expr = exprOper | term;
-
-    // std::string input;
-    // ParseResult<double> result;
-
-    // while (true)
-    // {
-    //     std::cout << "> ";
-    //     std::getline(std::cin, input);
-
-    //     if (input == "exit")
-    //         break;
-
-    //     result = parse(input, expr);
-
-    //     if (result.parse_finished())
-    //     {
-    //         cout << endl
-    //              << result.data() << endl;
-    //     }
-    //     else if (result.input_consumed())
-    //     {
-    //         cout << "Unexpected end of input string " << endl;
-    //     }
-    //     else
-    //     {
-    //         std::string::size_type pos = result.parse_position();
-    //         cout << "Unexpected character '" << input[pos] << "' at position " << pos << endl;
-    //     }
-    // }
-
-    // return 0;
 }

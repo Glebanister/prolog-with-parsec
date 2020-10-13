@@ -25,51 +25,51 @@
 #include <string>
 using std::string;
 
-#include "Parser.h"
 #include "Memoizer.h"
+#include "Parser.h"
 
 namespace Parsnip
 {
-	struct CharParser : public IParser<string, string>
+struct CharParser : public IParser<string, string>
 {
-	CharParser(char c) : myChar(c) 
-	{
-		this->setName(string("CharParser('") + c + "')");
-	}
+    CharParser(char c) : myChar(c)
+    {
+        this->setName(string("CharParser('") + c + "')");
+    }
 
 protected:
-	virtual Result<string> eval()
-	{
+    virtual Result<string> eval()
+    {
 
-		if (Reader<string>::hasNext())
-		{
-			Reader<string>::IndexT lastPos = Reader<string>::pos();
+        if (Reader<string>::hasNext())
+        {
+            Reader<string>::IndexT lastPos = Reader<string>::pos();
 
-			char currChar = Reader<string>::get();
-			
-			if (currChar == myChar)
-			{
-				return Result<string>::succeed(to_string(myChar));
-			}
+            char currChar = Reader<string>::get();
 
-		//token-level parsers mustn't advance the cursor past where they succeed			
-			Reader<string>::set_pos(lastPos);
-		}
-		return Result<string>::fail();
-	}
-	
+            if (currChar == myChar)
+            {
+                return Result<string>::succeed(to_string(myChar));
+            }
+
+            //token-level parsers mustn't advance the cursor past where they succeed
+            Reader<string>::set_pos(lastPos);
+        }
+        return Result<string>::fail();
+    }
+
 private:
-	char myChar;	
+    char myChar;
 };
 
-ptr<IParser<string, string> > ch(char c)
+ptr<IParser<string, string>> ch(char c)
 {
-	static Memoizer<char, ptr<IParser<string, string> > > memoizer;
-	if (memoizer.contains(c)) return memoizer.get(c);
-	return memoizer.insert(c, new CharParser(c));
+    static Memoizer<char, ptr<IParser<string, string>>> memoizer;
+    if (memoizer.contains(c))
+        return memoizer.get(c);
+    return memoizer.insert(c, new CharParser(c));
 }
 
-
-}
+} // namespace Parsnip
 
 #endif
