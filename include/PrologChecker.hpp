@@ -1,31 +1,22 @@
 #pragma once
 
+#include <string_view>
+
 #include "PrologObject.hpp"
 #include "PrologObjectPrinter.hpp"
 
 namespace prolog
 {
-#define OBJECT_MAKER(name)                          \
-    template <typename... Args>                     \
-    inline PrologObjectPtr make##name(Args... args) \
-    {                                               \
-        auto obj = new PrologObject("", #name);     \
-        (obj->objects.push_back(args), ...);        \
-        return obj;                                 \
-    }
+using ParseResult = Parsnip::ParseResult<prolog::PrologObjectPtr>;
+ParseResult parseProgram(const std::string &program);
 
-#define OBJECT_FROM_STRING_MAKER(name)                         \
-    inline PrologObjectPtr makeFromString##name(std::string s) \
-    {                                                          \
-        auto obj = new PrologObject(s, #name);                 \
-        return obj;                                            \
-    }
+struct ParsingResultPrinter
+{
+    ParsingResultPrinter(ParseResult result, const std::string &text);
 
-OBJECT_FROM_STRING_MAKER(Identifier);
-OBJECT_MAKER(Disj);
-OBJECT_MAKER(Conj);
-OBJECT_MAKER(Decl);
-OBJECT_MAKER(Atom);
-OBJECT_MAKER(AtomSeq);
-OBJECT_FROM_STRING_MAKER(ModuleDecl);
+    ParseResult result;
+    const std::string text;
+};
+
+std::ostream &operator<<(std::ostream &os, const ParsingResultPrinter &printer);
 } // namespace prolog

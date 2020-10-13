@@ -47,17 +47,22 @@ struct ParseResult
         return (*myData);
     }
 
-    bool input_consumed()
+    const Out &data() const
+    {
+        return (*myData);
+    }
+
+    bool input_consumed() const noexcept
     {
         return myCurrPos == myLastPos;
     }
 
-    bool parse_finished()
+    bool parse_finished() const noexcept
     {
         return myData && input_consumed();
     }
 
-    IndexT parse_position()
+    IndexT parse_position() const noexcept
     {
         return myCurrPos;
     }
