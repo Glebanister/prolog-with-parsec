@@ -81,66 +81,41 @@ PrologObjectPtr makeIdentifier(std::string name)
         return obj;                                     \
     }
 
-#define OBJECT_FROM_VOID_MAKER(name)            \
-    PrologObjectPtr makeFromVoid##name()        \
-    {                                           \
-        auto obj = new PrologObject("", #name); \
-        return obj;                             \
-    }
-
 OBJECT_FROM_STRING_MAKER(Identifier);
-OBJECT_MAKER(Decl);
-OBJECT_MAKER(DeclWithoutPeriod);
-OBJECT_FROM_STRING_MAKER(Corckscrew);
-OBJECT_FROM_STRING_MAKER(Period);
-OBJECT_MAKER(Body);
 OBJECT_MAKER(Disj);
 OBJECT_MAKER(Conj);
-OBJECT_MAKER(OpOr);
 
 int main(int argc, const char **argv)
 {
     using std::string;
     {
+
         using PrologObjectParser = yasper::ptr<Parsnip::IParser<std::string, PrologObjectPtr>>;
         using obj = PrologObjectPtr;
-        using parser = PrologObjectParser;
-        auto UndefinedObj = []() {
-            return lazy<std::string, PrologObjectPtr>();
-        };
+        auto undefined = []() { return lazy<std::string, PrologObjectPtr>(); };
+        auto ch_tok = [](char c) { return token(skip_ch(c)); };
+        auto str_tok = [](std::string s) { return token(skip_str(std::move(s))); };
 
-        parser identifier = call1(makeFromStringIdentifier, (letter | ch('_')) + optional(many1(letter | digit | ch('_'))));
-        parser decl = UndefinedObj(),
-               body = UndefinedObj(),
-               declWithoutPeriod = UndefinedObj(),
-               term = UndefinedObj(),
-               expr = UndefinedObj(),
-               opSelf = UndefinedObj(),
-               operators = UndefinedObj();
+        // Tokens
+        PrologObjectParser identTok = token(call1(makeFromStringIdentifier, (letter | ch('_')) + optional(many1(letter | digit | ch('_')))));
+        auto opn = ch_tok('('),
+             cls = ch_tok(')'),
+             corkscrew = str_tok(":-"),
+             period = ch_tok('.');
 
-        parser corckscrew = call1(makeFromStringCorckscrew, token_str(":-"));
-        parser period = call1(makeFromStringPeriod, token_str("."));
+        PrologObjectParser expression = undefined(),
+                           expressionTerm = undefined(),
+                           expressionOperation = undefined(),
+                           _operators = undefined();
 
-        setLazy(decl, call2(makeDecl<obj, obj>, declWithoutPeriod >> period) |
-                          call2(makeDecl<obj, obj>, identifier >> period));
-        setLazy(declWithoutPeriod, call3(makeDeclWithoutPeriod<obj, obj, obj>, identifier >> corckscrew >> body));
-        setLazy(body, expr);
+        _operators = op_table(expressionTerm)
+                         ->infix_right(";", 10, makeDisj<obj, obj>)
+                         ->infix_right(",", 20, makeConj<obj, obj>);
 
-        setLazy(term, identifier | skip_ch('(') >> opSelf >> skip_ch(')'));
-        operators = op_table(term)
-                        ->infix_right(";", 10, makeDisj<obj, obj>)
-                        ->infix_right(",", 20, makeConj<obj, obj>);
-        setLazy(opSelf, operators);
-        setLazy(expr, operators | term);
+        setLazy(expressionTerm, identTok | opn >> expressionOperation >> cls | opn >> expressionTerm >> cls);
+        setLazy(expressionOperation, _operators);
+        setLazy(expression, expressionOperation | expressionTerm);
 
-        // PrologObjectParser atom = identifier >> atom_seq;
-
-        // // StrParser atom_seq = lazy<string, string>();
-        // // StrParser atom_brackets = lazy<string, string>();
-        // // StrParser atom = identifier >> atom_seq;
-        // // // setLazy(atom_seq, optional(atom) | (ch('(') >> atom_brackets >> ch(')')));
-        // Parser<string, Tuple2<string, string>>::type single_pair = letters >> skip(token_ch('=')) >> letters >> skip_ch(';');
-        // Parser<string, std::map<string, string>>::type pair_parser = many<BuildMap<string, string>>(token(single_pair));
         std::vector<string>
             tests = {
                 // "a:-b.",
@@ -156,20 +131,23 @@ int main(int argc, const char **argv)
                 // "x :- x, (y; (a, b, c, d, (e); f) ,z), a ; d.",
                 // "x :- x, (y; (a, b, c, d, (e); f) ,z), a ; d.",
                 // "x :- x, (y; (a, b, c d, (e); f) ,z).",
-                "a",
-                "a, b",
-                "a; b",
-                "a   ; b",
-                "a, b ; d, d",
+                // "((a))",
+                // "a; (b)",
+                "((ab))",
+                "((ab)) , a;bc, ((d))",
+                // "a   ; b",
+                // "a, b ; d, d",
             };
         for (auto test : tests)
         {
-            auto result = parse(test, expr);
+            auto result = parse(test, expression);
             if (result.parse_finished())
             {
                 std::cout << "Success: " << *result.data() << std::endl;
+                continue;
             }
-            else if (result.input_consumed())
+            std::cout << test << ' ';
+            if (result.input_consumed())
             {
                 std::cout << "Error: "
                           << "unexpected end of input" << std::endl;
@@ -177,26 +155,25 @@ int main(int argc, const char **argv)
             else
             {
                 std::cout << "Error: "
-                          << "unexpected character '" << test[result.parse_position()] << "' at position " << result.parse_position() << endl;
+                          << "unexpected character '" << test[result.parse_position()] << "' at position " << result.parse_position() + 1 << endl;
             }
         }
     }
 
     // using NumParser = Parser<string, double>::type;
 
-    // prolog::PrologCheckerArgumentParser args(argc, argv);
+    // // prolog::PrologCheckerArgumentParser args(argc, argv);
 
-    // NumParser op_self = lazy<string, double>();
-    // NumParser term = real | skip_ch('(') >> op_self >> skip_ch(')');
+    // NumParser exprOper = lazy<string, double>();
+    // NumParser term = lazy<string, double>();
+    // setLazy(term, real | skip_ch('(') >> exprOper >> skip_ch(')') | skip_ch('(') >> term >> skip_ch(')'));
     // NumParser ops = op_table(term)
-    //                     ->infix_left("+", 10, add)
-    //                     ->infix_left("-", 10, subtract)
-    //                     ->infix_left("*", 20, multiply)
-    //                     ->infix_left("/", 20, divide);
+    //                     ->infix_left("+", 10, [](double a, double b) { return a + b; })
+    //                     ->infix_left("*", 20, [](double a, double b) { return a * b; });
 
-    // setLazy(op_self, ops);
+    // setLazy(exprOper, ops);
 
-    // NumParser expr = ops | term;
+    // NumParser expr = exprOper | term;
 
     // std::string input;
     // ParseResult<double> result;
