@@ -22,93 +22,90 @@
 #ifndef PARSNIP_READER_H
 #define PARSNIP_READER_H
 
-#include <string>
 #include <stack>
+#include <string>
 
 namespace Parsnip
 {
-		
 
-	template <typename Stream>
-	struct Reader
-	{
-		typedef typename Stream::value_type Element;
-		typedef typename Stream::size_type IndexT;
+template <typename Stream>
+struct Reader
+{
+    using Element = typename Stream::value_type;
+    using IndexT = typename Stream::size_type;
 
-		static IndexT pos() { return _pos; } 
-		static IndexT line()  { return _line; } 
-		static bool hasNext() { return _pos < _stream.length(); }
-		
-		static IndexT longest()
-		{
-			if (_pos > _longest) 
-			{
-				return _pos;
-			}
-			else
-			{ 
-				return _longest; 
-			}
-		}
+    static IndexT pos() { return _pos; }
+    static IndexT line() { return _line; }
+    static bool hasNext() { return _pos < _stream.length(); }
 
-		static IndexT len()
-		{ 
-			return _stream.length(); 
-		} 
+    static IndexT longest()
+    {
+        if (_pos > _longest)
+        {
+            return _pos;
+        }
+        else
+        {
+            return _longest;
+        }
+    }
 
-		static Element curr()
-		{
-			return _stream[_pos];
-		}
+    static IndexT len()
+    {
+        return _stream.length();
+    }
 
-		static Element get()
-		{
-			return _stream[_pos++];
-		}
+    static Element curr()
+    {
+        return _stream[_pos];
+    }
 
+    static Element get()
+    {
+        return _stream[_pos++];
+    }
 
-//		static void set_stream(const Stream& _other) { _stream = _other; }
+    //		static void set_stream(const Stream& _other) { _stream = _other; }
 
-		static void init_stream(const Stream& _other) 
-		{ 
-			_stream = _other;
-			_pos = 0;
-			_longest = 0;
-		}
+    static void init_stream(const Stream &_other)
+    {
+        _stream = _other;
+        _pos = 0;
+        _longest = 0;
+    }
 
+    static void set_pos(IndexT p)
+    {
+        if (p > _longest)
+            _longest = p;
+        _pos = p;
+    }
 
-		static void set_pos(IndexT p)
-		{
-			if (p > _longest) _longest = p;  		
-			_pos = p;
-		}
+    //move current character back one position
+    static void rewind()
+    {
+        _pos--;
+    }
 
+private:
+    static Stream _stream;
+    static IndexT _pos;
+    static IndexT _longest;
+    static IndexT _line;
+};
 
-		//move current character back one position
-		static void rewind()
-		{
-			_pos--;
-		}
+//initialize Reader's static member data
+template <typename Stream>
+Stream Reader<Stream>::_stream;
 
-	private:
-		static Stream _stream;
-		static IndexT _pos;
-		static IndexT _longest; 
-		static IndexT _line;
-	};
+template <typename Stream>
+typename Reader<Stream>::IndexT Reader<Stream>::_pos;
 
-	//initialize Reader's static member data
-	template <typename Stream>
-	Stream Reader<Stream>::_stream;
+template <typename Stream>
+typename Reader<Stream>::IndexT Reader<Stream>::_line;
 
-	template <typename Stream>
-	typename Reader<Stream>::IndexT Reader<Stream>::_pos;
-
-	template <typename Stream>
-	typename Reader<Stream>::IndexT Reader<Stream>::_line;
-
-	template <typename Stream>
-	typename Reader<Stream>::IndexT Reader<Stream>::_longest;
-}
+template <typename Stream>
+typename Reader<Stream>::IndexT Reader<Stream>::_longest;
+} // namespace Parsnip
 
 #endif

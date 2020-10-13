@@ -22,153 +22,151 @@
 #ifndef PARSNIP_LISP_OBJECT_H
 #define PARSNIP_LISP_OBJECT_H
 
-
 #include <string>
 using std::string;
 
-#include "ParsnipBase.h"
 #include "Accumulators.h"
+#include "ParsnipBase.h"
 
 namespace Parsnip
 {
 
 struct LispObject
 {
-	virtual bool isCons() { return false; }
-	virtual bool isNumber() { return false; }
-	virtual bool isSymbol() { return false; }
-	virtual bool isNil() { return false; }
+    virtual bool isCons() { return false; }
+    virtual bool isNumber() { return false; }
+    virtual bool isSymbol() { return false; }
+    virtual bool isNil() { return false; }
 
-	virtual std::string toString()=0;
+    virtual std::string toString() = 0;
 };
 
-typedef ptr<LispObject> ObjPtr; 
+typedef ptr<LispObject> ObjPtr;
 
 struct Cons : public LispObject
 {
-	Cons(ObjPtr _head, ObjPtr _tail) : head(_head), tail(_tail) {}
+    Cons(ObjPtr _head, ObjPtr _tail) : head(_head), tail(_tail) {}
 
-	virtual bool isCons() { return true; }
+    virtual bool isCons() { return true; }
 
-	ObjPtr head;
-	ObjPtr tail;
+    ObjPtr head;
+    ObjPtr tail;
 
-	virtual std::string toString()
-	{
-		std::string str = "(";
-		str += head->toString();
-		str += " . ";
-		str += tail->toString();
-		str += ")";
-		return str;
-	}
+    virtual std::string toString()
+    {
+        std::string str = "(";
+        str += head->toString();
+        str += " . ";
+        str += tail->toString();
+        str += ")";
+        return str;
+    }
 };
 
 typedef ptr<Cons> ConsPtr;
 
-
-
 ObjPtr makeCons(ObjPtr head, ObjPtr tail)
 {
-	return new Cons(head, tail);
+    return new Cons(head, tail);
 }
 
-Cons* toCons(ObjPtr obj)
+Cons *toCons(ObjPtr obj)
 {
-	return static_cast<Cons*>(obj.GetRawPointer());
+    return static_cast<Cons *>(obj.GetRawPointer());
 }
 
 struct Symbol : public LispObject
 {
-	Symbol(const std::string& _name) : name(_name) {}
-	virtual bool isSymbol() { return true; }
-	std::string name;
-	std::string toString() { return name; }
+    Symbol(const std::string &_name) : name(_name) {}
+    virtual bool isSymbol() { return true; }
+    std::string name;
+    std::string toString() { return name; }
 };
 
 typedef ptr<Symbol> SymPtr;
 
-ObjPtr makeSymbol(const std::string& str)
+ObjPtr makeSymbol(const std::string &str)
 {
-	return new Symbol(str);
+    return new Symbol(str);
 }
 
-struct Number : public LispObject 
+struct Number : public LispObject
 {
-	Number(double _val) : value(_val) {}
-	virtual bool isNumber() { return true; }
-	double value; 
+    Number(double _val) : value(_val) {}
+    virtual bool isNumber() { return true; }
+    double value;
 
-	std::string toString() { return to_string(value); }
+    std::string toString() { return to_string(value); }
 };
 
 typedef ptr<Number> NumPtr;
 
 ObjPtr makeNumber(double val)
 {
-	return new Number(val);
+    return new Number(val);
 }
 
 struct NilObject : public LispObject
 {
-	bool isNil() { return true; }
-	
-	static ObjPtr getNil()
-	{
-		if (nil) { return nil; }
-		else 
-		{
-			nil = new NilObject;
-			return nil;
-		}
-	}
+    bool isNil() { return true; }
 
-	std::string toString() { return "()"; }
+    static ObjPtr getNil()
+    {
+        if (nil)
+        {
+            return nil;
+        }
+        else
+        {
+            nil = new NilObject;
+            return nil;
+        }
+    }
+
+    std::string toString() { return "()"; }
+
 private:
-	static ObjPtr nil;
+    static ObjPtr nil;
 };
 
 ObjPtr NilObject::nil;
 
 ObjPtr getNil()
 {
-	return NilObject::getNil();
+    return NilObject::getNil();
 }
 
-
-
-struct BuildCons : public Accumulator<ObjPtr, ObjPtr >
+struct BuildCons : public Accumulator<ObjPtr, ObjPtr>
 {
-	BuildCons()
-	{
-		first_cell = getNil();
-		last_cell = first_cell;
-	}
+    BuildCons()
+    {
+        first_cell = getNil();
+        last_cell = first_cell;
+    }
 
-	virtual void accum(const ObjPtr& o) 
-	{ 
-		static ObjPtr nil = getNil();
+    virtual void accum(const ObjPtr &o)
+    {
+        static ObjPtr nil = getNil();
 
-		if(first_cell->isCons())
-		{
-			ObjPtr new_cell = makeCons(o, nil);
-			toCons(last_cell)->tail = new_cell;
-			last_cell = new_cell;
-		}
-		else
-		{
-			first_cell = makeCons(o, nil);
-			last_cell = first_cell;
-		}
-	}
+        if (first_cell->isCons())
+        {
+            ObjPtr new_cell = makeCons(o, nil);
+            toCons(last_cell)->tail = new_cell;
+            last_cell = new_cell;
+        }
+        else
+        {
+            first_cell = makeCons(o, nil);
+            last_cell = first_cell;
+        }
+    }
 
-	virtual ObjPtr result() { return first_cell; }
+    virtual ObjPtr result() { return first_cell; }
 
 private:
-	ObjPtr first_cell;
-	ObjPtr last_cell;
+    ObjPtr first_cell;
+    ObjPtr last_cell;
 };
 
-
-}
+} // namespace Parsnip
 #endif

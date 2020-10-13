@@ -4,6 +4,14 @@ project(prolog-checker)
 set(EXE ${CMAKE_PROJECT_NAME})
 set(Parsly extern/Parsnip_0.23/)
 
-add_executable(${EXE} src/main.cpp)
+add_executable(${EXE} src/main.cpp
+                      src/ArgumentParser.cpp
+                      src/SyntaxTree.cpp
+                      src/Exception.cpp)
+
+target_include_directories(${EXE} PUBLIC include/)
 target_include_directories(${EXE} PUBLIC extern/Parsnip_0.23/)
 target_include_directories(${EXE} PUBLIC extern/cxxopts/include/)
+
+set_property(TARGET ${EXE}
+             PROPERTY CXX_STANDARD 17)

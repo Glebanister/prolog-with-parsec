@@ -22,16 +22,14 @@
 #ifndef REDUCE_PARSER_H
 #define REDUCE_PARSER_H
 
-#include <memory>
-
-#include "yasper.h"
+#include "ReduceParser.h"
 
 namespace Parsnip
 {
 	template <typename In, typename Out, unsigned int N>
 	struct ReduceParser : public IParser<In, Vector<Out, N>>
 	{
-		ReduceParser(ptr<IParser<In, Vector<Out, N>>> _parser, Out (*fn)(Out, Out))
+		ReduceParser(ptr<IParser<In, Vector<Out, N>> > _parser, Out (*fn)(Out, Out))
 			: parser(_parser), reduceFn(fn) {}
 
 		virtual Result<Out> eval()
@@ -41,7 +39,7 @@ namespace Parsnip
 			{
 				Vector<Out, N> vec = result.get();
 
-				Out value = vec[0];
+				Out value = vec[0]; 
 				for (unsigned i = 1; i < N; ++i)
 				{
 					value = reduceFn(value, vec[i]);
@@ -55,17 +53,18 @@ namespace Parsnip
 			}
 		}
 
-		ptr<IParser<In, Vector<Out, N>>> parser;
+		ptr<IParser<In, Vector<Out, N>> > parser; 
 		Out (*reduceFn)(Out, Out);
 	};
 
 	template <typename In, typename Out, unsigned int N>
-	yasper::ptr<IParser<In, Out>> reduce(Out (*reduceFn)(Out, Out),
-										 ptr<IParser<In, Vector<Out, N>>> parser);
-	// {
-	// 	// return std::make_unique<ReduceParser>(parser, reduceFn).release();
-	// }
+	ptr<IParser<In, Out> > reduce(
+		Out (*reduceFn)(Out, Out),
+		ptr<IParser<In, Vector<Out, N>> > parser)
+	{
+		return new ReduceParser<In, Out, N>(parser, reduceFn);
+	}
 
-} // namespace Parsnip
+}
 
 #endif
