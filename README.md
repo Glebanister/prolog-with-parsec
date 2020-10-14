@@ -16,7 +16,7 @@ make
 Empty output if and only if checker have passed all tests.
 
 ```bash
-
+./build/test-prolog-checker
 ```
 
 ## Run
