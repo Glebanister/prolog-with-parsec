@@ -7,8 +7,20 @@
 
 namespace prolog
 {
+enum parserType
+{
+    ATOM,
+    TYPEEXPR,
+    TYPE,
+    MODULE,
+    RELATION,
+    LIST,
+    PROG,
+    _TOTAL,
+};
+
 using ParseResult = Parsnip::ParseResult<prolog::PrologObjectPtr>;
-ParseResult parseProgram(const std::string &program);
+ParseResult parseProgram(const std::string &program, parserType type = parserType::PROG);
 
 struct ParsingResultPrinter
 {

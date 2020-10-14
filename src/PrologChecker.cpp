@@ -71,7 +71,7 @@ OBJECT_ACCUMULATOR(TypeDeclarationSequence);
 OBJECT_ACCUMULATOR(ListItems);
 OBJECT_ACCUMULATOR(AtomSequence);
 
-ParseResult parseProgram(const std::string &text)
+ParseResult parseProgram(const std::string &text, parserType whatToParse)
 {
     using std::string;
     using namespace prolog;
@@ -112,16 +112,18 @@ ParseResult parseProgram(const std::string &text)
                        variable = token(call1(makeFromStringVariable, variableStringParser)),
                        program = undefined(),
                        expression = undefined(),
+                       relationWithBody = undefined(),
                        relationDeclaration = undefined(),
                        atom = undefined(),
                        primitive = undefined(),
+                       list = undefined(),
                        moduleDeclaration = undefined(),
+                       type = undefined(),
                        typeDeclaration = undefined();
     {
         // Primitive parser
 
         PrologObjectParser
-            list = undefined(),
             listItems = undefined(),
             listHeadTail = undefined();
 
@@ -156,6 +158,7 @@ ParseResult parseProgram(const std::string &text)
         setLazy(relationDeclaration, choice(
                                          call2(makeRelation<obj, obj>, atom >> corkscrew >> expression >> period),
                                          call1(makeRelation<obj>, atom >> period)));
+        setLazy(relationWithBody, call2(makeRelation<obj, obj>, atom >> corkscrew >> expression >> period));
     }
     {
         // Atom parser
@@ -175,7 +178,6 @@ ParseResult parseProgram(const std::string &text)
     {
         // Type parser
         PrologObjectParser
-            type = undefined(),
             _operators = undefined(),
             typeTerm = undefined(),
             typeOperation = undefined(),
@@ -213,7 +215,33 @@ ParseResult parseProgram(const std::string &text)
                     call1(makeProgram<obj>, moduleDeclaration) |
                     call0(makeProgram<>, empty));
     }
-    return Parsnip::parse(text, program);
+    switch (whatToParse)
+    {
+    case parserType::ATOM:
+        return Parsnip::parse(text, atom);
+        break;
+    case parserType::TYPEEXPR:
+        return Parsnip::parse(text, type);
+        break;
+    case parserType::TYPE:
+        return Parsnip::parse(text, typeDeclaration);
+        break;
+    case parserType::MODULE:
+        return Parsnip::parse(text, moduleDeclaration);
+        break;
+    case parserType::RELATION:
+        return Parsnip::parse(text, relationWithBody);
+        break;
+    case parserType::LIST:
+        return Parsnip::parse(text, list);
+        break;
+    case parserType::PROG:
+        return Parsnip::parse(text, program);
+        break;
+    default:
+        return Parsnip::parse(text, program);
+        break;
+    }
 }
 
 ParsingResultPrinter::ParsingResultPrinter(ParseResult result, const std::string &text)

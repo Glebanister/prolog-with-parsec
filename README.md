@@ -22,61 +22,47 @@ Empty output if and only if checker have passed all tests.
 ## Run
 
 ```bash
-./build/prolog-checker -i <prolog-program-path>
+./build/prolog-checker -i <prolog-program-path> [OPTIONS]
 ```
+
+| Option        | Description                                  | Value  |
+|---------------|----------------------------------------------|--------|
+| `-i, --input` | Specify input file path     (required)       | string |
+| `-h, --help`  | Get help                                     | -      |
+| `--atom`      | Check if input is correct atom               | -      |
+| `--typeexpr`  | Check if input is correct typeexpr           | -      |
+| `--type`      | Check if input is correct type declaration   | -      |
+| `--module`    | Check if input is correct module declaration | -      |
+| `--relation`  | Check if input is correct relation           | -      |
+| `--list`      | Check if input is correct list               | -      |
+| `--prog`      | Check if input is correct program            | -      |
 
 ## Example
 
 ```bash
-$ cat example.pl
+$ cat stress.pl
 module moduleName.
-
-type typename1 a -> (b -> c).
-
-x :- a [a, b, [H | T]]; b, c.
-$ ./prolog-checker -i example.pl && cat example.pl.out
+type x a -> b.
+a :- b.
+$ ./prolog-checker -i stress.pl && cat stress.pl.out
 ├─ Program
 │ ├─ ModuleDecl: 'moduleName'
 │ ├─ TypeDeclarationSequence
 │ │ ├─ TypeDecl
-│ │ │ ├─ TypeDecl: 'typename1'
+│ │ │ ├─ TypeDecl: 'x'
 │ │ │ ├─ Arrow
 │ │ │ │ ├─ Atom
 │ │ │ │ │ ├─ Identifier: 'a'
 │ │ │ │ │ ├─ AtomSequence
-│ │ │ │ ├─ Arrow
-│ │ │ │ │ ├─ Atom
-│ │ │ │ │ │ ├─ Identifier: 'b'
-│ │ │ │ │ │ ├─ AtomSequence
-│ │ │ │ │ ├─ Atom
-│ │ │ │ │ │ ├─ Identifier: 'c'
-│ │ │ │ │ │ ├─ AtomSequence
+│ │ │ │ ├─ Atom
+│ │ │ │ │ ├─ Identifier: 'b'
+│ │ │ │ │ ├─ AtomSequence
 │ ├─ RelationSequence
 │ │ ├─ Relation
 │ │ │ ├─ Atom
-│ │ │ │ ├─ Identifier: 'x'
+│ │ │ │ ├─ Identifier: 'a'
 │ │ │ │ ├─ AtomSequence
-│ │ │ ├─ Disj
-│ │ │ │ ├─ Atom
-│ │ │ │ │ ├─ Identifier: 'a'
-│ │ │ │ │ ├─ AtomSequence
-│ │ │ │ │ │ ├─ List
-│ │ │ │ │ │ │ ├─ ListItems
-│ │ │ │ │ │ │ │ ├─ Atom
-│ │ │ │ │ │ │ │ │ ├─ Identifier: 'a'
-│ │ │ │ │ │ │ │ │ ├─ AtomSequence
-│ │ │ │ │ │ │ │ ├─ Atom
-│ │ │ │ │ │ │ │ │ ├─ Identifier: 'b'
-│ │ │ │ │ │ │ │ │ ├─ AtomSequence
-│ │ │ │ │ │ │ │ ├─ List
-│ │ │ │ │ │ │ │ │ ├─ ListHeadTail
-│ │ │ │ │ │ │ │ │ │ ├─ Variable: 'H'
-│ │ │ │ │ │ │ │ │ │ ├─ Variable: 'T'
-│ │ │ │ ├─ Conj
-│ │ │ │ │ ├─ Atom
-│ │ │ │ │ │ ├─ Identifier: 'b'
-│ │ │ │ │ │ ├─ AtomSequence
-│ │ │ │ │ ├─ Atom
-│ │ │ │ │ │ ├─ Identifier: 'c'
-│ │ │ │ │ │ ├─ AtomSequence
+│ │ │ ├─ Atom
+│ │ │ │ ├─ Identifier: 'b'
+│ │ │ │ ├─ AtomSequence
 ```

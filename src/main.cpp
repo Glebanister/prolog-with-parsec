@@ -22,7 +22,7 @@ int main(int argc, const char **argv)
         {
             throw std::invalid_argument("Can not write to '" + args.inputFilename + ".out'");
         }
-        outputFile << prolog::ParsingResultPrinter(prolog::parseProgram(programText), programText);
+        outputFile << prolog::ParsingResultPrinter(prolog::parseProgram(programText, args.whatToParse), programText);
     }
     catch (const std::exception &e)
     {
