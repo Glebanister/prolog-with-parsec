@@ -241,7 +241,7 @@ std::ostream &operator<<(std::ostream &os, const ParsingResultPrinter &printer)
             badStringEnd = printer.text.size();
         }
         int badStringBegin = badStringEnd - 1;
-        for (; badStringBegin >= 1 && printer.text[badStringBegin] != '\n'; --badStringBegin)
+        for (; badStringBegin >= 1 && printer.text[badStringBegin - 1] != '\n'; --badStringBegin)
             ;
         int badStringLineN = std::count(printer.text.begin() + badStringBegin, printer.text.begin() + badStringEnd, '\n');
         int badCharPosition = printer.result.parse_position() - badStringBegin;
@@ -260,7 +260,7 @@ std::ostream &operator<<(std::ostream &os, const ParsingResultPrinter &printer)
            << "unexpected character '"
            << printer.text[printer.result.parse_position()]
            << "' at position "
-           << badStringLineN << ':' << badCharPosition
+           << badStringLineN + 1 << ':' << badCharPosition + 1
            << std::endl;
     }
 
