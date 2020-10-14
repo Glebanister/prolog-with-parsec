@@ -115,4 +115,43 @@ int main()
                   "   Type    name    ( ( a c (c) -> x) -> y).   ",
               },
               ALL_INCORRECT);
+
+    testSuite("Correct list usages",
+              {
+                  "a [a, b, c].",
+                  "a [A, b, c].",
+                  "a []."
+                  "a [a, [], c].",
+                  "a [[[]]].",
+                  "a [A].",
+                  "a [[a, B, c], A].",
+                  "a [A|B].",
+                  "a [[A|B]].",
+                  "a [[], [A|B], a].",
+                  "a [[A|B]|C].",
+                  "a [[[a, b, [[[]|C]] ]|B]|C].",
+                  "type typename x -> x [a, b, c].",
+                  "type typename x -> x [a | C].",
+                  "type typename x -> x [A, B, [[]|D]].",
+              },
+              ALL_CORRECT);
+
+    testSuite("Incorrect list usages",
+              {
+                  "a [.",
+                  "a [x,].",
+                  "a [x, y, z,].",
+                  "a [   ,    ].",
+                  "a [a|b].",
+                  "a [a|B|C].",
+                  "a [A|B,C].",
+                  "a [A|B,C].",
+                  "a [[a|[]]].",
+                  "a [A|a].",
+                  "a [A|[]].",
+                  "a [[, [A|B], a].",
+                  "a [[A|]|C].",
+                  "a [[[a, b, [[[]C]] ]|B]|C].",
+              },
+              ALL_INCORRECT);
 }
