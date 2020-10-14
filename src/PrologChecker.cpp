@@ -4,6 +4,15 @@
 
 namespace prolog
 {
+#define OBJECT_REDUCER(type)                                                  \
+    PrologObjectPtr reduce##type(PrologObjectPtr left, PrologObjectPtr right) \
+    {                                                                         \
+        PrologObjectPtr reduced = new PrologObject("", #type);                \
+        reduced->objects.push_back(left);                                     \
+        reduced->objects.push_back(right);                                    \
+        return reduced;                                                       \
+    }
+
 #define OBJECT_ACCUMULATOR(type)                                                            \
     class Accumulator##type : public Parsnip::Accumulator<PrologObjectPtr, PrologObjectPtr> \
     {                                                                                       \
@@ -42,6 +51,7 @@ OBJECT_FROM_STRING_MAKER(Identifier);
 OBJECT_FROM_STRING_MAKER(Variable);
 OBJECT_FROM_STRING_MAKER(ModuleDecl);
 OBJECT_FROM_STRING_MAKER(TypeDecl);
+
 OBJECT_MAKER(Disj);
 OBJECT_MAKER(Arrow);
 OBJECT_MAKER(Conj);
@@ -50,10 +60,16 @@ OBJECT_MAKER(Atom);
 OBJECT_MAKER(AtomSeq);
 OBJECT_MAKER(Program);
 OBJECT_MAKER(TypeDecl);
+OBJECT_MAKER(ListItems);
+OBJECT_MAKER(List);
+OBJECT_MAKER(ListHeadTail);
 OBJECT_MAKER(EmptyProgram);
+OBJECT_MAKER(EmptyList);
 
 OBJECT_ACCUMULATOR(RelationSequence);
 OBJECT_ACCUMULATOR(TypeDeclarationSequence);
+OBJECT_ACCUMULATOR(ListItems);
+OBJECT_ACCUMULATOR(AtomSequence);
 
 ParseResult parseProgram(const std::string &text)
 {
@@ -74,9 +90,13 @@ ParseResult parseProgram(const std::string &text)
         sqopn = ch_tok('['),
         sqcls = ch_tok(']'),
         corkscrew = str_tok(":-"),
+        space_tok = str_tok(" "),
         period = ch_tok('.'),
+        comma = ch_tok(','),
+        vertical = ch_tok('|'),
         moduleKeyword = str_tok("module"),
-        typeKeyword = str_tok("type");
+        typeKeyword = str_tok("type"),
+        empty = str_tok("");
 
     auto notKeywordChecker = is_not((str("module") | str("type")) >> is_not(alphaNum | ch('_')));
 
@@ -87,18 +107,32 @@ ParseResult parseProgram(const std::string &text)
               variableStringParser = (range('A', 'Z') +
                                       many(alphaNum | ch('_')));
 
-    PrologObjectParser identifier = token(call1(makeFromStringIdentifier, identifierStringParser)),
-                       variable = token(call1(makeFromStringVariable, variableStringParser));
-
     // Global parsers
-    PrologObjectParser
-        program = undefined(),
-        expression = undefined(),
-        relationDeclaration = undefined(),
-        atom = undefined(),
-        moduleDeclaration = undefined(),
-        typeDeclaration = undefined();
+    PrologObjectParser identifier = token(call1(makeFromStringIdentifier, identifierStringParser)),
+                       variable = token(call1(makeFromStringVariable, variableStringParser)),
+                       program = undefined(),
+                       expression = undefined(),
+                       relationDeclaration = undefined(),
+                       atom = undefined(),
+                       primitive = undefined(),
+                       moduleDeclaration = undefined(),
+                       typeDeclaration = undefined();
+    {
+        // Primitive parser
 
+        PrologObjectParser
+            list = undefined(),
+            listItems = undefined(),
+            listHeadTail = undefined();
+
+        setLazy(list, choice(
+                          call1(makeList<obj>, sqopn >> listHeadTail >> sqcls),
+                          call1(makeList<obj>, sqopn >> listItems >> sqcls)));
+
+        setLazy(listHeadTail, call2(makeListHeadTail<obj, obj>, primitive >> vertical >> variable));
+        setLazy(listItems, sepByStrict<AccumulatorListItems>(primitive, comma));
+        setLazy(primitive, list | atom | variable);
+    }
     {
         // Expression parsers
         PrologObjectParser
@@ -124,17 +158,15 @@ ParseResult parseProgram(const std::string &text)
                                          call1(makeRelation<obj>, atom >> period)));
     }
     {
-        // Atom parsers
+        // Atom parser
         PrologObjectParser
-            atomSeq = undefined(),
-            atomBrackets = undefined();
+            primitiveInBrackets = undefined();
 
-        setLazy(atom, call2(makeAtom<obj, obj>, identifier >> atomSeq));
-        setLazy(atomSeq, choice(
-                             call2(makeAtomSeq<obj, obj>, opn >> atomBrackets >> cls >> atomSeq),
-                             optional<string, obj>(atom, makeAtom<>())));
-
-        setLazy(atomBrackets, opn >> atomBrackets >> cls | atom);
+        setLazy(primitiveInBrackets, opn >> primitiveInBrackets >> cls | primitive);
+        setLazy(atom,
+                call2(makeAtom<obj, obj>, identifier >> sepBy<AccumulatorAtomSequence>(
+                                                            primitiveInBrackets,
+                                                            whitespace)));
     }
     {
         // Module parser
@@ -179,7 +211,7 @@ ParseResult parseProgram(const std::string &text)
                     call1(makeProgram<obj>, relationDeclarationSequence) |
 
                     call1(makeProgram<obj>, moduleDeclaration) |
-                    call0(makeProgram<>, not_ch(anyChar)));
+                    call0(makeProgram<>, empty));
     }
     return Parsnip::parse(text, program);
 }

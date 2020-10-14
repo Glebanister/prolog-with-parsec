@@ -30,7 +30,8 @@ namespace Parsnip
 template <typename Accumulator, typename AccOut, typename In, typename ParserOut>
 struct SepByParser : public IParser<In, AccOut>
 {
-    SepByParser(ptr<IParser<In, ParserOut>> p, ptr<IParser<In, void>> _sep, int _min, int _max) : parser(p), sep(_sep), min(_min), max(_max)
+    SepByParser(ptr<IParser<In, ParserOut>> p, ptr<IParser<In, void>> _sep, int _min, int _max, bool _forbidLastSep)
+        : parser(p), sep(_sep), min(_min), max(_max), lastSepForbidden(_forbidLastSep)
     {
         this->setName("sepBy");
     }
@@ -45,9 +46,10 @@ protected:
         typename Reader<In>::IndexT lastPos = Reader<In>::pos();
 
         int i = 0;
+        typename Reader<In>::IndexT lastSepPos = Reader<In>::pos();
+        bool breakNotBecauseOfSep = false;
         while (i < max && Reader<In>::hasNext())
         {
-
             result = parser->parse();
             if (result)
             {
@@ -55,15 +57,21 @@ protected:
             }
             else
             {
+                breakNotBecauseOfSep = true;
                 break;
             }
 
+            lastSepPos = Reader<In>::pos();
             if (!sep->parse())
             {
                 break;
             }
-
             ++i;
+        }
+
+        if (breakNotBecauseOfSep && lastSepForbidden)
+        {
+            Reader<In>::set_pos(lastSepPos);
         }
 
         if (i < min)
@@ -71,21 +79,20 @@ protected:
             Reader<In>::set_pos(lastPos);
             return Result<AccOut>::fail();
         }
-        else
-        {
-            return Result<AccOut>::succeed(acc.result());
-        }
+
+        return Result<AccOut>::succeed(acc.result());
     }
 
     ptr<IParser<In, ParserOut>> parser;
     ptr<IParser<In, void>> sep;
     int min, max;
+    bool lastSepForbidden;
 };
 
 template <typename Acc, typename In, typename Out, typename SepOut>
 inline ptr<IParser<In, typename Acc::ResultType>> sepBy(ptr<IParser<In, Out>> data, ptr<IParser<In, SepOut>> sep, int min = 0, int max = std::numeric_limits<int>::max())
 {
-    return new SepByParser<Acc, typename Acc::ResultType, In, Out>(data, skip(sep), min, max);
+    return new SepByParser<Acc, typename Acc::ResultType, In, Out>(data, skip(sep), min, max, false);
 }
 
 template <typename Acc, typename In, typename Out, typename SepOut>
@@ -100,6 +107,11 @@ inline ptr<IParser<In, typename Acc::ResultType>> sepByAtleast(ptr<IParser<In, O
     return sepBy<Acc>(data, sep, min);
 }
 
+template <typename Acc, typename In, typename Out, typename SepOut>
+inline ptr<IParser<In, typename Acc::ResultType>> sepByStrict(ptr<IParser<In, Out>> data, ptr<IParser<In, SepOut>> sep, int min = 0, int max = std::numeric_limits<int>::max())
+{
+    return new SepByParser<Acc, typename Acc::ResultType, In, Out>(data, skip(sep), min, max, true);
+}
 } // namespace Parsnip
 
 #endif
