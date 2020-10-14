@@ -8,7 +8,6 @@ namespace prolog
     {
         PrologCheckerArgumentParser(int argc, const char **argv);
 
-        bool isTesting;
         std::string inputFilename;
 
     private:
