@@ -187,7 +187,7 @@ ParseResult parseProgram(const std::string &text, parserType whatToParse)
         _operators = op_table(typeTerm)
                          ->infix_right("->", 10, makeArrow<obj, obj>);
 
-        setLazy(typeTerm, atom | opn >> typeOperation >> cls | opn >> typeTerm >> cls);
+        setLazy(typeTerm, (atom | variable) | opn >> typeOperation >> cls | opn >> typeTerm >> cls);
         setLazy(typeOperation, _operators);
         setLazy(type, typeOperation | typeTerm);
         setLazy(typeDeclarationHead, call1(makeFromStringTypeDecl, typeKeyword >> identifierStringParser));
