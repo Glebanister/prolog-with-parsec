@@ -65,6 +65,7 @@ OBJECT_MAKER(List);
 OBJECT_MAKER(ListHeadTail);
 OBJECT_MAKER(EmptyProgram);
 OBJECT_MAKER(EmptyList);
+OBJECT_MAKER(PrimitiveInBrackets)
 
 OBJECT_ACCUMULATOR(RelationSequence);
 OBJECT_ACCUMULATOR(TypeDeclarationSequence);
@@ -165,7 +166,7 @@ ParseResult parseProgram(const std::string &text, parserType whatToParse)
         PrologObjectParser
             primitiveInBrackets = undefined();
 
-        setLazy(primitiveInBrackets, opn >> primitiveInBrackets >> cls | primitive);
+        setLazy(primitiveInBrackets, call1(makePrimitiveInBrackets<obj>, opn >> primitiveInBrackets >> cls) | primitive);
         setLazy(atom,
                 call2(makeAtom<obj, obj>, identifier >> sepBy<AccumulatorAtomSequence>(
                                                             primitiveInBrackets,
